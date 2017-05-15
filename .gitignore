@@ -250,3 +250,8 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+/cmake
+
+*.cert
+/tools/tpm_simulator/NVChip
