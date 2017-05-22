@@ -142,6 +142,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     {
         //arrange
         unsigned char dest[10];
+
         //act
         MemoryCopy(dest, NULL, sizeof(dest));
 
@@ -156,6 +157,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         //arrange
         unsigned char src[10] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA };
         unsigned char dest[10];
+
         //act
         MemoryCopy(dest, src, sizeof(dest));
 
