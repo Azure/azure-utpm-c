@@ -45,6 +45,8 @@ endif()
 
 compileAsC99()
 
+set(TPM_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
+
 add_subdirectory(./deps/c-utility)
 
 set(utpm_c_files
