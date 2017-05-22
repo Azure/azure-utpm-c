@@ -11,7 +11,7 @@ set(${theseTestsName}_test_files
 )
 
 set(${theseTestsName}_c_files
-	../../src/memory.c
+	../../src/Memory.c
 )
 
 set(${theseTestsName}_h_files
