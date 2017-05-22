@@ -4,3 +4,5 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 #add_subdirectory(tpm_comm_emulator_ut)
+add_subdirectory(tpm_codec_ut)
+add_subdirectory(tpm_memory_ut)

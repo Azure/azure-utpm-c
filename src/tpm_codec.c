@@ -228,7 +228,12 @@ static TPM_RC CleanResponseCode(TPM_RC rawResponse)
 TPM_RC Initialize_TPM_Codec(TSS_DEVICE* tpm)
 {
     TPM_RC result;
-    if ( (tpm->tpm_comm_handle = tpm_comm_create()) == NULL)
+    if (tpm == NULL)
+    {
+        LogError("Invalid parameter tpm is NULL");
+        result = TPM_RC_FAILURE;
+    }
+    else if ( (tpm->tpm_comm_handle = tpm_comm_create()) == NULL)
     {
         LogError("Failure creating tpm_comm object");
         result = TPM_RC_FAILURE;
@@ -534,6 +539,10 @@ TSS_StartAuthSession(
         session->SessIn.sessionAttributes = sessAttrs;
         session->SessOut.sessionAttributes = sessAttrs;
     }
+    else
+    {
+        LogError("Failure calling TPM2_StartAuthSession %d", rc);
+    }
     return rc;
 }
 
@@ -541,45 +550,59 @@ TSS_StartAuthSession(
 // TSS extensions of the TPM 2.0 command interafce
 //
 
-TPM_RC
-TSS_CreatePwAuthSession(
+TPM_RC TSS_CreatePwAuthSession(
     TPM2B_AUTH      *authValue,     // IN
     TSS_SESSION     *session        // OUT
 )
 {
-    session->SessIn.sessionHandle = TPM_RS_PW;
-    session->SessIn.nonce.t.size = 0;
-    session->SessIn.sessionAttributes.continueSession = SET;
-    TSS_COPY2B(session->SessIn.hmac, *authValue);
-    session->SessOut.sessionAttributes.continueSession = SET;
-    return TPM_RC_SUCCESS;
+    TPM_RC result;
+    if (authValue == NULL || session == NULL)
+    {
+        result = TPM_RC_FAILURE;
+    }
+    else
+    {
+        session->SessIn.sessionHandle = TPM_RS_PW;
+        session->SessIn.nonce.t.size = 0;
+        session->SessIn.sessionAttributes.continueSession = SET;
+        TSS_COPY2B(session->SessIn.hmac, *authValue);
+        session->SessOut.sessionAttributes.continueSession = SET;
+        result = TPM_RC_SUCCESS;
+    }
+    return result;
 }
 
-UINT32
-TSS_GetTpmProperty(
-    TSS_DEVICE             *tpm,                // IN/OUT
-    TPM_PT                  property            // IN
-)
+UINT32 TSS_GetTpmProperty(TSS_DEVICE* tpm, TPM_PT property)
 {
+    UINT32 result;
     TPMI_YES_NO                 more = NO;
     TPMS_CAPABILITY_DATA        capData;
     TPML_TAGGED_TPM_PROPERTY   *pProps = NULL;
 
-    TPM_RC TSS_LastResponseCode = TPM2_GetCapability(tpm, TPM_CAP_TPM_PROPERTIES,
-        property, 1, &more, &capData);
-
-    if (   TSS_LastResponseCode != TPM_RC_SUCCESS 
-        || capData.capability != TPM_CAP_TPM_PROPERTIES)
+    TPM_RC TSS_LastResponseCode = TPM2_GetCapability(tpm, TPM_CAP_TPM_PROPERTIES, property, 1, &more, &capData);
+    if (TSS_LastResponseCode != TPM_RC_SUCCESS || capData.capability != TPM_CAP_TPM_PROPERTIES)
     {
-        return TSS_BAD_PROPERTY;
+        LogError("Get Capability failure");
+        result = TSS_BAD_PROPERTY;
     }
-    pAssert(capData.data.tpmProperties.count == 1);
-
-    pProps = &capData.data.tpmProperties;
-    if (pProps->tpmProperty[0].property != property)
-        return TSS_BAD_PROPERTY;
-
-    return pProps->tpmProperty[0].value;
+    else if (capData.data.tpmProperties.count != 1)
+    {
+        LogError("Capability data count does not equal 1");
+        result = TSS_BAD_PROPERTY;
+    }
+    else
+    {
+        pProps = &capData.data.tpmProperties;
+        if (pProps->tpmProperty[0].property != property)
+        {
+            result = TSS_BAD_PROPERTY;
+        }
+        else
+        {
+            result = pProps->tpmProperty[0].value;
+        }
+    }
+    return result;
 }
 
 TPM_RC TSS_CreatePrimary(TSS_DEVICE *tpm, TSS_SESSION *sess,
@@ -927,71 +950,95 @@ TSS_DispatchCmd(
                                     //     On output contains complete command and response buffers
 )
 {
+    TPM_RC result;
     TSS_STATUS  res;
     TPM_ST      tag;
     UINT32      expectedSize = 0;
 
-    cmdCtx->RespBufPtr = cmdCtx->RespBuffer;
-    cmdCtx->RespParamSize = 0;
-    cmdCtx->RetHandle = TPM_RH_UNASSIGNED;
-
-    cmdCtx->CmdSize = TSS_BuildCommand(cmdCode,
-        handles, numHandles,
-        sessions, numSessions,
-        cmdCtx->ParamBuffer, cmdCtx->ParamSize,
-        cmdCtx->CmdBuffer, sizeof(cmdCtx->CmdBuffer));
-
-    cmdCtx->RespSize = sizeof(cmdCtx->RespBuffer);
-    res = TSS_SendCommand(tpm, cmdCtx->CmdBuffer, cmdCtx->CmdSize,
-        cmdCtx->RespBuffer, (INT32*)&cmdCtx->RespSize);
-    if (res != TSS_SUCCESS)
-        return TPM_RC_COMMAND_CODE;
-
-    //
-    // Unmarshal command header
-    //
-
-    if (*(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_NO_SESSIONS
-        && *(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_SESSIONS)
+    if (tpm == NULL || cmdCtx == NULL)
     {
-        return TPM_RC_BAD_TAG;
+        LogError("invalid paramer specified");
+        result = TPM_RC_FAILURE;
     }
-
-    cmdCtx->RespBytesLeft = cmdCtx->RespSize;
-    tpm->LastRawResponse = TPM_RC_NOT_USED;
-
-    TSS_UNMARSHAL(TPMI_ST_COMMAND_TAG, &tag);
-    TSS_UNMARSHAL(UINT32, &expectedSize);
-    TSS_UNMARSHAL(TPM_RC, &tpm->LastRawResponse);
-
-    if (cmdCtx->RespSize != expectedSize)
-        return TPM_RC_COMMAND_SIZE;//TSS_E_BAD_RESPONSE_LEN;
-
-    if (tpm->LastRawResponse == TPM_RC_SUCCESS)
+    else
     {
-        if (cmdCode == TPM_CC_CreatePrimary
-            || cmdCode == TPM_CC_Load
-            || cmdCode == TPM_CC_HMAC_Start
-            || cmdCode == TPM_CC_ContextLoad
-            || cmdCode == TPM_CC_LoadExternal
-            || cmdCode == TPM_CC_StartAuthSession
-            || cmdCode == TPM_CC_HashSequenceStart
-            || cmdCode == TPM_CC_CreateLoaded)
-        {
-            // Response buffer contains a handle returned by the TPM
-            TSS_UNMARSHAL(TPM_HANDLE, &cmdCtx->RetHandle);
-            pAssert(cmdCtx->RetHandle != 0 && cmdCtx->RetHandle != TPM_RH_UNASSIGNED);
-        }
+        cmdCtx->RespBufPtr = cmdCtx->RespBuffer;
+        cmdCtx->RespParamSize = 0;
+        cmdCtx->RetHandle = TPM_RH_UNASSIGNED;
 
-        if (tag == TPM_ST_SESSIONS)
+        cmdCtx->CmdSize = TSS_BuildCommand(cmdCode, handles, numHandles, sessions, numSessions,
+            cmdCtx->ParamBuffer, cmdCtx->ParamSize, cmdCtx->CmdBuffer, sizeof(cmdCtx->CmdBuffer));
+
+        cmdCtx->RespSize = sizeof(cmdCtx->RespBuffer);
+        res = TSS_SendCommand(tpm, cmdCtx->CmdBuffer, cmdCtx->CmdSize, cmdCtx->RespBuffer, (INT32*)&cmdCtx->RespSize);
+        if (res != TSS_SUCCESS)
         {
-            // Response buffer contains a field specifying the size of returned parameters
-            TSS_UNMARSHAL(UINT32, &cmdCtx->RespParamSize);
+            LogError("Failure Sending command to tpm %d.", res);
+            result = TPM_RC_COMMAND_CODE;
+        }
+        else
+        {
+            result = TPM_RC_SUCCESS;
+
+            // Unmarshal command header
+            if (*(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_NO_SESSIONS
+                && *(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_SESSIONS)
+            {
+                LogError("Failure response buffer is invalid.");
+                result = TPM_RC_BAD_TAG;
+            }
+            else
+            {
+                cmdCtx->RespBytesLeft = cmdCtx->RespSize;
+                tpm->LastRawResponse = TPM_RC_NOT_USED;
+
+                TSS_UNMARSHAL(TPMI_ST_COMMAND_TAG, &tag);
+                TSS_UNMARSHAL(UINT32, &expectedSize);
+                TSS_UNMARSHAL(TPM_RC, &tpm->LastRawResponse);
+
+                if (cmdCtx->RespSize != expectedSize)
+                {
+                    LogError("Failure response size is not expected size.");
+                    result = TPM_RC_COMMAND_SIZE;//TSS_E_BAD_RESPONSE_LEN;
+                }
+                else
+                {
+                    if (tpm->LastRawResponse == TPM_RC_SUCCESS)
+                    {
+                        if (cmdCode == TPM_CC_CreatePrimary
+                            || cmdCode == TPM_CC_Load
+                            || cmdCode == TPM_CC_HMAC_Start
+                            || cmdCode == TPM_CC_ContextLoad
+                            || cmdCode == TPM_CC_LoadExternal
+                            || cmdCode == TPM_CC_StartAuthSession
+                            || cmdCode == TPM_CC_HashSequenceStart
+                            || cmdCode == TPM_CC_CreateLoaded)
+                        {
+                            // Response buffer contains a handle returned by the TPM
+                            TSS_UNMARSHAL(TPM_HANDLE, &cmdCtx->RetHandle);
+                            //pAssert(cmdCtx->RetHandle != 0 && cmdCtx->RetHandle != TPM_RH_UNASSIGNED);
+                            if (cmdCtx->RetHandle == 0 || cmdCtx->RetHandle == TPM_RH_UNASSIGNED)
+                            {
+                                result = TPM_RC_COMMAND_CODE;
+                            }
+                        }
+                        if (result == TPM_RC_SUCCESS && tag == TPM_ST_SESSIONS)
+                        {
+                            // Response buffer contains a field specifying the size of returned parameters
+                            TSS_UNMARSHAL(UINT32, &cmdCtx->RespParamSize);
+                        }
+                    }
+
+                    if (result == TPM_RC_SUCCESS)
+                    {
+                        // Remove error location information from the response code, if any
+                        result = CleanResponseCode(tpm->LastRawResponse);
+                    }
+                }
+            }
         }
     }
-
-    // Remove error location information from the response code, if any
-    return CleanResponseCode(tpm->LastRawResponse);
+    return result;
 }
 
 TSS_STATUS

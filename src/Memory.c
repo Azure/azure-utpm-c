@@ -26,9 +26,11 @@
 // the #define is always used
 void MemoryCopy(void* dest, const void* src, int sSize)
 {
-    memmove(dest, src, sSize);
+    if (dest != NULL && src != NULL)
+    {
+        memmove(dest, src, sSize);
+    }
 }
-
 
 //*** MemoryEqual()
 // This function indicates if two buffers have the same values in the indicated
@@ -36,8 +38,7 @@ void MemoryCopy(void* dest, const void* src, int sSize)
 // return type: BOOL
 //      TRUE    all octets are the same
 //      FALSE   all octets are not the same
-BOOL
-MemoryEqual(
+BOOL MemoryEqual(
     const void      *buffer1,       // IN: compare buffer1
     const void      *buffer2,       // IN: compare buffer2
     unsigned int     size           // IN: size of bytes being compared
@@ -59,40 +60,50 @@ MemoryEqual(
 // the same or different.
 //
 // This function returns the number of octets in the data buffer of the TPM2B.
-LIB_EXPORT INT16
-MemoryCopy2B(
-    TPM2B           *dest,          // OUT: receiving TPM2B
-    const TPM2B     *source,        // IN: source TPM2B
-    unsigned int     dSize          // IN: size of the receiving buffer
-    )
+INT16 MemoryCopy2B(TPM2B* dest, const TPM2B* source, unsigned int dSize)
 {
-    pAssert(dest != NULL);
-    if(source == NULL)
-        dest->size = 0;
+    INT16 result;
+    if (dest == NULL)
+    {
+        result = 0;
+    }
     else
     {
-        pAssert(source->size <= dSize);
-        MemoryCopy(dest->buffer, source->buffer, source->size);
-        dest->size = source->size;
+        if (source == NULL)
+        {
+            dest->size = 0;
+        }
+        else if (source->size > dSize)
+        {
+            dest->size = 0;
+        }
+        else
+        {
+            //pAssert(source->size <= dSize);
+            MemoryCopy(dest->buffer, source->buffer, source->size);
+            dest->size = source->size;
+        }
+        result = dest->size;
     }
-    return dest->size;
+    return result;
 }
 
 //*** MemoryConcat2B()
 // This function will concatenate the buffer contents of a TPM2B to an
 // the buffer contents of another TPM2B and adjust the size accordingly
 //      ('a' := ('a' | 'b')).
-void
-MemoryConcat2B(
-    TPM2B           *aInOut,        // IN/OUT: destination 2B
-    TPM2B           *bIn,           // IN: second 2B
-    unsigned int     aMaxSize       // IN: The size of aInOut.buffer (max values for
+void MemoryConcat2B(
+    TPM2B* aInOut,        // IN/OUT: destination 2B
+    TPM2B* bIn,           // IN: second 2B
+    unsigned int aMaxSize       // IN: The size of aInOut.buffer (max values for
                                     //     aInOut.size)
     )
 {
-    pAssert(bIn->size <= aMaxSize - aInOut->size);
-    MemoryCopy(&aInOut->buffer[aInOut->size], &bIn->buffer, bIn->size);
-    aInOut->size = aInOut->size + bIn->size;
+    if (bIn->size <= aMaxSize - aInOut->size)
+    {
+        MemoryCopy(&aInOut->buffer[aInOut->size], &bIn->buffer, bIn->size);
+        aInOut->size = aInOut->size + bIn->size;
+    }
     return;
 }
 

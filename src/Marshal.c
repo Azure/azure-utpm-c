@@ -4,9 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "azure_c_shared_utility/xlogging.h"
+
 #include "azure_utpm_c/Tpm.h"
 
-//#ifdef TSS_C
 #include "azure_utpm_c/Marshal_fp.h"
 #include "azure_utpm_c/Memory_fp.h"
 #include <assert.h>
@@ -21,22 +22,35 @@ void TpmFail(
 {
     assert(code != code);
 }
-//#endif // TSS_C
 
 // Table 2:3 - Definition of Base Types (BaseTypes)
 //   UINT8 definition from table 2:3
-TPM_RC
-UINT8_Unmarshal(UINT8 *target, BYTE **buffer, INT32 *size)
+TPM_RC UINT8_Unmarshal(UINT8 *target, BYTE **buffer, INT32 *size)
 {
-    if((*size -= 1) < 0)
-        return TPM_RC_INSUFFICIENT;
-    *target = BYTE_ARRAY_TO_UINT8(*buffer);
-    *buffer += 1;
-    return TPM_RC_SUCCESS;
+    TPM_RC result;
+    if (target == NULL || buffer == NULL || size == NULL)
+    {
+        LogError("invalid paramer specified");
+        result = TPM_RC_INSUFFICIENT;
+    }
+    else
+    {
+        if ((*size -= 1) < 0)
+        {
+            LogError("invalid paramer specified");
+            result = TPM_RC_INSUFFICIENT;
+        }
+        else
+        {
+            *target = BYTE_ARRAY_TO_UINT8(*buffer);
+            *buffer += 1;
+            result = TPM_RC_SUCCESS;
+        }
+    }
+    return result;
 }
 
-UINT16
-UINT8_Marshal(UINT8 *source, BYTE **buffer, INT32 *size)
+UINT16 UINT8_Marshal(UINT8 *source, BYTE **buffer, INT32 *size)
 {
     if (buffer != 0)
     {
@@ -45,7 +59,7 @@ UINT8_Marshal(UINT8 *source, BYTE **buffer, INT32 *size)
             UINT8_TO_BYTE_ARRAY(*source, *buffer);
             *buffer += 1;
         }
-        pAssert(size == 0 || (*size >= 0));
+        //pAssert(size == 0 || (*size >= 0));
     }
     return (1);
 }
@@ -57,18 +71,23 @@ UINT8_Marshal(UINT8 *source, BYTE **buffer, INT32 *size)
 //   INT8_Unmarshal changed to #define
 //   INT8_Marshal changed to #define
 //   UINT16 definition from table 2:3
-TPM_RC
-UINT16_Unmarshal(UINT16 *target, BYTE **buffer, INT32 *size)
+TPM_RC UINT16_Unmarshal(UINT16 *target, BYTE **buffer, INT32 *size)
 {
-    if((*size -= 2) < 0)
-        return TPM_RC_INSUFFICIENT;
-    *target = BYTE_ARRAY_TO_UINT16(*buffer);
-    *buffer += 2;
-    return TPM_RC_SUCCESS;
+    TPM_RC result;
+    if ((*size -= 2) < 0)
+    {
+        result = TPM_RC_INSUFFICIENT;
+    }
+    else
+    {
+        *target = BYTE_ARRAY_TO_UINT16(*buffer);
+        *buffer += 2;
+        result = TPM_RC_SUCCESS;
+    }
+    return result;
 }
 
-UINT16
-UINT16_Marshal(UINT16 *source, BYTE **buffer, INT32 *size)
+UINT16 UINT16_Marshal(UINT16 *source, BYTE **buffer, INT32 *size)
 {
     if (buffer != 0)
     {
@@ -77,7 +96,7 @@ UINT16_Marshal(UINT16 *source, BYTE **buffer, INT32 *size)
             UINT16_TO_BYTE_ARRAY(*source, *buffer);
             *buffer += 2;
         }
-        pAssert(size == 0 || (*size >= 0));
+        //pAssert(size == 0 || (*size >= 0));
     }
     return (2);
 }
@@ -86,18 +105,23 @@ UINT16_Marshal(UINT16 *source, BYTE **buffer, INT32 *size)
 //   INT16_Unmarshal changed to #define
 //   INT16_Marshal changed to #define
 //   UINT32 definition from table 2:3
-TPM_RC
-UINT32_Unmarshal(UINT32 *target, BYTE **buffer, INT32 *size)
+TPM_RC UINT32_Unmarshal(UINT32 *target, BYTE **buffer, INT32 *size)
 {
-    if((*size -= 4) < 0)
-        return TPM_RC_INSUFFICIENT;
-    *target = BYTE_ARRAY_TO_UINT32(*buffer);
-    *buffer += 4;
-    return TPM_RC_SUCCESS;
+    TPM_RC result;
+    if ((*size -= 4) < 0)
+    {
+        result = TPM_RC_INSUFFICIENT;
+    }
+    else
+    {
+        *target = BYTE_ARRAY_TO_UINT32(*buffer);
+        *buffer += 4;
+        result = TPM_RC_SUCCESS;
+    }
+    return result;
 }
 
-UINT16
-UINT32_Marshal(UINT32 *source, BYTE **buffer, INT32 *size)
+UINT16 UINT32_Marshal(UINT32 *source, BYTE **buffer, INT32 *size)
 {
     if (buffer != 0)
     {
@@ -106,7 +130,7 @@ UINT32_Marshal(UINT32 *source, BYTE **buffer, INT32 *size)
             UINT32_TO_BYTE_ARRAY(*source, *buffer);
             *buffer += 4;
         }
-        pAssert(size == 0 || (*size >= 0));
+        //pAssert(size == 0 || (*size >= 0));
     }
     return (4);
 }
@@ -135,7 +159,7 @@ UINT64_Marshal(UINT64 *source, BYTE **buffer, INT32 *size)
             UINT64_TO_BYTE_ARRAY(*source, *buffer);
             *buffer += 8;
         }
-        pAssert(size == 0 || (*size >= 0));
+        //pAssert(size == 0 || (*size >= 0));
     }
     return (8);
 }
@@ -5350,9 +5374,9 @@ BYTE_Array_Marshal(BYTE *source, BYTE **buffer, INT32 *size, INT32 count)
             memcpy(*buffer, source, count);
             *buffer += count;
         }
-        pAssert(size == 0 || (*size >= 0));
+        //pAssert(size == 0 || (*size >= 0));
     }
-    pAssert(count < UINT16_MAX);
+    //pAssert(count < UINT16_MAX);
     return ((UINT16)count);
 }
 

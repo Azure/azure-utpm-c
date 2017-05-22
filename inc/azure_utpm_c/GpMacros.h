@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-//** Introduction
-// This file is a collection of miscellaneous macros.
-
 #ifndef GP_MACROS_H
 #define GP_MACROS_H
 
@@ -12,7 +9,6 @@
 #endif
 
 #include "swap.h"
-//#include "VendorString.h"
 
 #ifdef SELF_TEST
 
@@ -38,11 +34,11 @@
 #   define FUNCTION_NAME        __FUNCTION__
 #endif
 
-#ifdef NO_FAIL_TRACE
-#   define FAIL(errorCode) (TpmFail(errorCode))
-#else
-#   define FAIL(errorCode) (TpmFail(FUNCTION_NAME, __LINE__, errorCode))
-#endif
+//#ifdef NO_FAIL_TRACE
+//#   define FAIL(errorCode) (TpmFail(errorCode))
+//#else
+//#   define FAIL(errorCode) (TpmFail(FUNCTION_NAME, __LINE__, errorCode))
+//#endif
 
 
 // If implementation is using longjmp, then the call to TpmFail() does not return
@@ -73,11 +69,11 @@
 #define PARAMETER_CHECK(condition, returnCode)          \
     REQUIRE((condition), PARAMETER, returnCode)
 
-#if defined EMPTY_ASSERT
-#   define pAssert(a)  ((void)0)
-#else
-#   define pAssert(a) {if(!(a)) FAIL(FATAL_ERROR_PARAMETER);}
-#endif
+//#if defined EMPTY_ASSERT
+//#   define pAssert(a)  ((void)0)
+//#else
+//#   define pAssert(a) {if(!(a)) FAIL(FATAL_ERROR_PARAMETER);}
+//#endif
 
 //** Derived from Vendor-specific values
 // Values derived from vendor specific settings in Implementation.h

@@ -13,6 +13,7 @@ extern "C" {
 
 #include "Tpm.h"
 #include "tpm_comm.h"
+#include "azure_c_shared_utility/umock_c_prod.h"
 
 // TSS status codes
 

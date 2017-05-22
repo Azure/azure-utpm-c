@@ -4,18 +4,22 @@
 #ifndef    _MEMORY_FP_H_
 #define    _MEMORY_FP_H_
 
+#include "azure_c_shared_utility/umock_c_prod.h"
+#include "azure_utpm_c/BaseTypes.h"
+#include "azure_utpm_c/TPMB.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 //*** MemoryCopy()
 // This is an alias for memmove. This is used in place of memcpy because
 // some of the moves may overlap and rather than try to make sure that
 // memmove is used when necessary, it is always used.
 // The #if 0 is used to prevent instantiation of the MemoryCopy function so that
 // the #define is always used
-void
-MemoryCopy(
-    void        *dest,
-    const void  *src,
-    int          sSize
-    );
+MOCKABLE_FUNCTION(, void, MemoryCopy, void*, dest, const void*, src, int, sSize);
 
 //*** MemoryEqual()
 // This function indicates if two buffers have the same values in the indicated
@@ -35,12 +39,7 @@ MemoryEqual(
 // the same or different.
 //
 // This function returns the number of octets in the data buffer of the TPM2B.
-LIB_EXPORT INT16
-MemoryCopy2B(
-    TPM2B           *dest,          // OUT: receiving TPM2B
-    const TPM2B     *source,        // IN: source TPM2B
-    unsigned int     dSize          // IN: size of the receiving buffer
-    );
+MOCKABLE_FUNCTION(, INT16, MemoryCopy2B, TPM2B*, dest, const TPM2B*, source, unsigned int, dSize);
 
 //*** MemoryConcat2B()
 // This function will concatenate the buffer contents of a TPM2B to an
@@ -123,5 +122,9 @@ UINT32 ByteArrayToUint32(
 //*** ByteArrayToUint64()
 // Function to write an integer to a byte array
 UINT64 ByteArrayToUint64(BYTE* a);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // _MEMORY_FP_H_
