@@ -6,6 +6,6 @@
 int main(void)
 {
     size_t failedTestCount = 0;
-    RUN_TEST_SUITE(tpm_codec_ut, failedTestCount);
+    RUN_TEST_SUITE(tpm_memory_ut, failedTestCount);
     return failedTestCount;
 }

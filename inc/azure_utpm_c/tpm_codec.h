@@ -88,19 +88,9 @@ MOCKABLE_FUNCTION(, TPM_RC, TSS_StartHmacAuthSession, TSS_DEVICE*, tpm, TPM_SE, 
 
 MOCKABLE_FUNCTION(, TPM_RC, TSS_CreatePrimary, TSS_DEVICE*, tpm, TSS_SESSION*, sess, TPM_HANDLE, hierarchy, TPM2B_PUBLIC*, inPub, TPM_HANDLE*, outHandle, TPM2B_PUBLIC*, outPub);
 
-TPM_RC TSS_Create(
-    TSS_DEVICE *tpm,
-    TSS_SESSION *sess,
-    TPM_HANDLE parent,
-    TPM2B_PUBLIC *inPub,
-    TPM2B_PRIVATE *outPriv,
-    TPM2B_PUBLIC *outPub
-);
+MOCKABLE_FUNCTION(, TPM_RC, TSS_Create, TSS_DEVICE*, tpm, TSS_SESSION*, sess, TPM_HANDLE, parent, TPM2B_SENSITIVE_CREATE*, sensCreate, TPM2B_PUBLIC*, inPub, TPM2B_PRIVATE*, outPriv, TPM2B_PUBLIC*, outPub);
 
-UINT32 TSS_GetTpmProperty(
-    TSS_DEVICE             *tpm,                // IN/OUT
-    TPM_PT                  property            // IN
-);
+MOCKABLE_FUNCTION(, UINT32, TSS_GetTpmProperty, TSS_DEVICE*, tpm, TPM_PT, prop);
 
 TPM_RC TSS_Hash(
     TSS_DEVICE             *tpm,                // IN/OUT
@@ -139,10 +129,6 @@ TPM_RC TSS_Sign(
 
 MOCKABLE_FUNCTION(, TPM_RC, TSS_PolicySecret, TSS_DEVICE*, tpm, TSS_SESSION*, session, TPMI_DH_ENTITY, authHandle, TSS_SESSION*, policySession, TPM2B_NONCE*, nonceTPM, INT32, expiration);
 
-//
-// TSS helpers
-//
-
 // Represents fields of the TPMA_OBJECT bit field
 typedef enum _OBJECT_ATTR
 {
@@ -166,10 +152,7 @@ MOCKABLE_FUNCTION(, TPM_RC, Initialize_TPM_Codec, TSS_DEVICE*, tpm);
 
 MOCKABLE_FUNCTION(, void, Deinit_TPM_Codec, TSS_DEVICE*, tpm);
 
-//
 // TPM 2.0 command interafce
-//
-
 MOCKABLE_FUNCTION(, TPM_RC, TPM2_ActivateCredential, TSS_DEVICE*, tpm, TSS_SESSION*, activateSess, TSS_SESSION*, keySess, TPMI_DH_OBJECT, activateHandle, TPMI_DH_OBJECT, keyHandle, TPM2B_ID_OBJECT*, credentialBlob, TPM2B_ENCRYPTED_SECRET*, secret, TPM2B_DIGEST*, certInfo);
 
 TPM_RC TPM2_Create(
@@ -201,6 +184,8 @@ TPM_RC TPM2_CreatePrimary(
     TPM2B_DIGEST             *creationHash,     // OUT
     TPMT_TK_CREATION         *creationTicket    // OUT
 );
+
+MOCKABLE_FUNCTION(, TPM_RC, TPM2_EncryptDecrypt, TSS_DEVICE*, tpm, TSS_SESSION*, session, TPMI_DH_OBJECT, keyHandle, TPMI_YES_NO, decrypt, TPM_ALG_ID, cipherMode, TPM2B_IV*, ivIn, TPM2B_MAX_BUFFER*, inData, TPM2B_MAX_BUFFER*, outData, TPM2B_IV*, ivOut);
 
 MOCKABLE_FUNCTION(, TPM_RC, TPM2_EvictControl, TSS_DEVICE*, tpm, TSS_SESSION*, session, TPMI_RH_PROVISION, auth, TPMI_DH_OBJECT, objectHandle, TPMI_DH_PERSISTENT, persistentHandle);
 
@@ -326,11 +311,6 @@ void TSS_RandomBytes(
 
 //
 // Misc TSS helpers
-//
-
-const char* TSS_GetStatusMessage(TSS_STATUS err);
-
-const char* TSS_StatusValueName(TPM_RC rc);
 
 void TSS_PrintError(const char* msg, UINT32 errCode, ...);
 

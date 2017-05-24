@@ -109,6 +109,256 @@ static void PrintErrorV(const char* msg, int errCode, ErrCodeMsgFnPtr getErrCode
         fprintf(stderr, "\n");
 }
 
+// Returns names of TPM_RC and TSS_STATUS codes
+static const char* TSS_StatusValueName(UINT32 rc)
+{
+    static char unkCode[32];
+
+    switch (rc)
+    {
+    case TPM_RC_SUCCESS:
+        return "TPM_RC_SUCCESS";
+    case TPM_RC_BAD_TAG:
+        return "TPM_RC_BAD_TAG";
+        //
+        // VER1:
+        //
+    case TPM_RC_INITIALIZE:
+        return "TPM_RC_INITIALIZE";
+    case TPM_RC_FAILURE:
+        return "TPM_RC_FAILURE";
+    case TPM_RC_SEQUENCE:
+        return "TPM_RC_SEQUENCE";
+    case TPM_RC_PRIVATE:
+        return "TPM_RC_PRIVATE";
+    case TPM_RC_HMAC:
+        return "TPM_RC_HMAC";
+    case TPM_RC_DISABLED:
+        return "TPM_RC_DISABLED";
+    case TPM_RC_EXCLUSIVE:
+        return "TPM_RC_EXCLUSIVE";
+    case TPM_RC_AUTH_TYPE:
+        return "TPM_RC_AUTH_TYPE";
+    case TPM_RC_AUTH_MISSING:
+        return "TPM_RC_AUTH_MISSING";
+    case TPM_RC_POLICY:
+        return "TPM_RC_POLICY";
+    case TPM_RC_PCR:
+        return "TPM_RC_PCR";
+    case TPM_RC_PCR_CHANGED:
+        return "TPM_RC_PCR_CHANGED";
+    case TPM_RC_UPGRADE:
+        return "TPM_RC_UPGRADE";
+    case TPM_RC_TOO_MANY_CONTEXTS:
+        return "TPM_RC_TOO_MANY_CONTEXTS";
+    case TPM_RC_AUTH_UNAVAILABLE:
+        return "TPM_RC_AUTH_UNAVAILABLE";
+    case TPM_RC_REBOOT:
+        return "TPM_RC_REBOOT";
+    case TPM_RC_UNBALANCED:
+        return "TPM_RC_UNBALANCED";
+    case TPM_RC_COMMAND_SIZE:
+        return "TPM_RC_COMMAND_SIZE";
+    case TPM_RC_COMMAND_CODE:
+        return "TPM_RC_COMMAND_CODE";
+    case TPM_RC_AUTHSIZE:
+        return "TPM_RC_AUTHSIZE";
+    case TPM_RC_AUTH_CONTEXT:
+        return "TPM_RC_AUTH_CONTEXT";
+    case TPM_RC_NV_RANGE:
+        return "TPM_RC_NV_RANGE";
+    case TPM_RC_NV_SIZE:
+        return "TPM_RC_NV_SIZE";
+    case TPM_RC_NV_LOCKED:
+        return "TPM_RC_NV_LOCKED";
+    case TPM_RC_NV_AUTHORIZATION:
+        return "TPM_RC_NV_AUTHORIZATION";
+    case TPM_RC_NV_UNINITIALIZED:
+        return "TPM_RC_NV_UNINITIALIZED";
+    case TPM_RC_NV_SPACE:
+        return "TPM_RC_NV_SPACE";
+    case TPM_RC_NV_DEFINED:
+        return "TPM_RC_NV_DEFINED";
+    case TPM_RC_BAD_CONTEXT:
+        return "TPM_RC_BAD_CONTEXT";
+    case TPM_RC_CPHASH:
+        return "TPM_RC_CPHASH";
+    case TPM_RC_PARENT:
+        return "TPM_RC_PARENT";
+    case TPM_RC_NEEDS_TEST:
+        return "TPM_RC_NEEDS_TEST";
+    case TPM_RC_NO_RESULT:
+        return "TPM_RC_NO_RESULT";
+    case TPM_RC_SENSITIVE:
+        return "TPM_RC_SENSITIVE";
+    case RC_MAX_FM0:
+        return "RC_MAX_FM0";
+        //
+        // FMT1
+        //
+    case TPM_RC_ASYMMETRIC:
+        return "TPM_RC_ASYMMETRIC";
+    case TPM_RC_ATTRIBUTES:
+        return "TPM_RC_ATTRIBUTES";
+    case TPM_RC_HASH:
+        return "TPM_RC_HASH";
+    case TPM_RC_VALUE:
+        return "TPM_RC_VALUE";
+    case TPM_RC_HIERARCHY:
+        return "TPM_RC_HIERARCHY";
+    case TPM_RC_KEY_SIZE:
+        return "TPM_RC_KEY_SIZE";
+    case TPM_RC_MGF:
+        return "TPM_RC_MGF";
+    case TPM_RC_MODE:
+        return "TPM_RC_MODE";
+    case TPM_RC_TYPE:
+        return "TPM_RC_TYPE";
+    case TPM_RC_HANDLE:
+        return "TPM_RC_HANDLE";
+    case TPM_RC_KDF:
+        return "TPM_RC_KDF";
+    case TPM_RC_RANGE:
+        return "TPM_RC_RANGE";
+    case TPM_RC_AUTH_FAIL:
+        return "TPM_RC_AUTH_FAIL";
+    case TPM_RC_NONCE:
+        return "TPM_RC_NONCE";
+    case TPM_RC_PP:
+        return "TPM_RC_PP";
+    case TPM_RC_SCHEME:
+        return "TPM_RC_SCHEME";
+    case TPM_RC_SIZE:
+        return "TPM_RC_SIZE";
+    case TPM_RC_SYMMETRIC:
+        return "TPM_RC_SYMMETRIC";
+    case TPM_RC_TAG:
+        return "TPM_RC_TAG";
+    case TPM_RC_SELECTOR:
+        return "TPM_RC_SELECTOR";
+    case TPM_RC_INSUFFICIENT:
+        return "TPM_RC_INSUFFICIENT";
+    case TPM_RC_SIGNATURE:
+        return "TPM_RC_SIGNATURE";
+    case TPM_RC_KEY:
+        return "TPM_RC_KEY";
+    case TPM_RC_POLICY_FAIL:
+        return "TPM_RC_POLICY_FAIL";
+    case TPM_RC_INTEGRITY:
+        return "TPM_RC_INTEGRITY";
+    case TPM_RC_TICKET:
+        return "TPM_RC_TICKET";
+    case TPM_RC_RESERVED_BITS:
+        return "TPM_RC_RESERVED_BITS";
+    case TPM_RC_BAD_AUTH:
+        return "TPM_RC_BAD_AUTH";
+    case TPM_RC_EXPIRED:
+        return "TPM_RC_EXPIRED";
+    case TPM_RC_POLICY_CC:
+        return "TPM_RC_POLICY_CC";
+    case TPM_RC_BINDING:
+        return "TPM_RC_BINDING";
+    case TPM_RC_CURVE:
+        return "TPM_RC_CURVE";
+    case TPM_RC_ECC_POINT:
+        return "TPM_RC_ECC_POINT";
+        //
+        // WARN
+        //
+    case TPM_RC_CONTEXT_GAP:
+        return "TPM_RC_CONTEXT_GAP";
+    case TPM_RC_OBJECT_MEMORY:
+        return "TPM_RC_OBJECT_MEMORY";
+    case TPM_RC_SESSION_MEMORY:
+        return "TPM_RC_SESSION_MEMORY";
+    case TPM_RC_MEMORY:
+        return "TPM_RC_MEMORY";
+    case TPM_RC_SESSION_HANDLES:
+        return "TPM_RC_SESSION_HANDLES";
+    case TPM_RC_OBJECT_HANDLES:
+        return "TPM_RC_OBJECT_HANDLES";
+    case TPM_RC_LOCALITY:
+        return "TPM_RC_LOCALITY";
+    case TPM_RC_YIELDED:
+        return "TPM_RC_YIELDED";
+    case TPM_RC_CANCELED:
+        return "TPM_RC_CANCELED";
+    case TPM_RC_TESTING:
+        return "TPM_RC_TESTING";
+    case TPM_RC_REFERENCE_H0:
+        return "TPM_RC_REFERENCE_H0";
+    case TPM_RC_REFERENCE_H1:
+        return "TPM_RC_REFERENCE_H1";
+    case TPM_RC_REFERENCE_H2:
+        return "TPM_RC_REFERENCE_H2";
+    case TPM_RC_REFERENCE_H3:
+        return "TPM_RC_REFERENCE_H3";
+    case TPM_RC_REFERENCE_H4:
+        return "TPM_RC_REFERENCE_H4";
+    case TPM_RC_REFERENCE_H5:
+        return "TPM_RC_REFERENCE_H5";
+    case TPM_RC_REFERENCE_H6:
+        return "TPM_RC_REFERENCE_H6";
+    case TPM_RC_REFERENCE_S0:
+        return "TPM_RC_REFERENCE_S0";
+    case TPM_RC_REFERENCE_S1:
+        return "TPM_RC_REFERENCE_S1";
+    case TPM_RC_REFERENCE_S2:
+        return "TPM_RC_REFERENCE_S2";
+    case TPM_RC_REFERENCE_S3:
+        return "TPM_RC_REFERENCE_S3";
+    case TPM_RC_REFERENCE_S4:
+        return "TPM_RC_REFERENCE_S4";
+    case TPM_RC_REFERENCE_S5:
+        return "TPM_RC_REFERENCE_S5";
+    case TPM_RC_REFERENCE_S6:
+        return "TPM_RC_REFERENCE_S6";
+    case TPM_RC_NV_RATE:
+        return "TPM_RC_NV_RATE";
+    case TPM_RC_LOCKOUT:
+        return "TPM_RC_LOCKOUT";
+    case TPM_RC_RETRY:
+        return "TPM_RC_RETRY";
+    case TPM_RC_NV_UNAVAILABLE:
+        return "TPM_RC_NV_UNAVAILABLE";
+    case TPM_RC_NOT_USED:
+        return "TPM_RC_NOT_USED";
+
+        //
+        // TSS general
+        //
+    case TSS_E_INVALID_PARAM:
+        return "TSS_E_INVALID_PARAM";
+    case TSS_E_SOCK_INIT:
+        return "TSS_E_SOCK_INIT";
+    case TSS_E_SOCK_SHUTDOWN:
+        return "TSS_E_SOCK_SHUTDOWN";
+    case TSS_E_TPM_CONNECT:
+        return "TSS_E_TPM_CONNECT";
+    case TSS_E_TPM_SIM_INCOMPAT_VER:
+        return "TSS_E_TPM_SIM_INCOMPAT_VER";
+    case TSS_E_TPM_SIM_STARTUP:
+        return "TSS_E_TPM_SIM_STARTUP";
+
+        //
+        // TSS communication with TPM
+        //
+    case TSS_E_COMM:
+        return "TSS_E_COMM";
+    case TSS_E_TPM_TRANSACTION:
+        return "TSS_E_TPM_TRANSACTION";
+    case TSS_E_TPM_SIM_BAD_ACK:
+        return "TSS_E_TPM_SIM_BAD_ACK";
+    case TSS_E_BAD_RESPONSE:
+        return "TSS_E_BAD_RESPONSE";
+    case TSS_E_BAD_RESPONSE_LEN:
+        return "TSS_E_BAD_RESPONSE_LEN";
+    }
+
+    snprintf(unkCode, sizeof(unkCode), "0x%08X", rc);
+    return unkCode;
+} // TSS_StatusValueName()
+
 void TSS_PrintError(const char* msg, UINT32 errCode, ...)
 {
     (void)msg;
@@ -199,7 +449,6 @@ static TSS_CMD_CONTEXT  CmdCtx;
 #define CHECK_CMD_RESULT2(rc, errMsg, msgArg1, msgArg2) \
     if (rc != TPM_RC_SUCCESS)                           \
     {                                                   \
-        TSS_PrintError(errMsg, rc, msgArg1, msgArg2);   \
         goto end;                                       \
     }
 
@@ -428,18 +677,6 @@ TPM2_SequenceUpdate(
     END_CMD();
 }
 
-/*TPM_RC
-TPM2_Decrypt(
-TSS_DEVICE             *tpm,
-)
-{
-    BEGIN_CMD();
-
-    DISPATCH_CMD(EncryptDecrypt, &keyHandle, 1, &session, 1);
-
-    END_CMD();
-}*/
-
 TPM_RC
 TPM2_Sign(
     TSS_DEVICE             *tpm,                // IN/OUT
@@ -512,10 +749,7 @@ TSS_Sign(
     return TPM2_Sign(tpm, session, keyHandle, digest, NULL, NULL, signature);
 }
 
-//
 // TSS extensions of the TPM 2.0 command interafce
-//
-
 TPM_RC
 TSS_StartAuthSession(
     TSS_DEVICE             *tpm,                // IN/OUT
@@ -541,7 +775,7 @@ TSS_StartAuthSession(
     }
     else
     {
-        LogError("Failure calling TPM2_StartAuthSession %d", rc);
+        LogError("Failure calling TPM2_StartAuthSession 0x%x: %s", rc, TSS_StatusValueName(rc) );
     }
     return rc;
 }
@@ -612,30 +846,23 @@ TPM_RC TSS_CreatePrimary(TSS_DEVICE *tpm, TSS_SESSION *sess,
     TPM2B_SENSITIVE_CREATE  sensCreate = { 0 };
     TPM2B_DATA              outsideInfo = { 0 };
     TPML_PCR_SELECTION      creationPCR = { 0 };
-    TPM2B_CREATION_DATA     creationData;
-    TPM2B_DIGEST            creationHash;
-    TPMT_TK_CREATION        creationTicket;
 
     return TPM2_CreatePrimary(tpm, sess, hierarchy, &sensCreate,
         inPub, &outsideInfo, &creationPCR,
-        outHandle, outPub,
-        &creationData, &creationHash, &creationTicket);
+        outHandle, outPub, NULL, NULL, NULL);
 }
 
-TPM_RC TSS_Create(TSS_DEVICE *tpm, TSS_SESSION *sess,
-    TPM_HANDLE parent, TPM2B_PUBLIC *inPub,
-    TPM2B_PRIVATE *outPriv, TPM2B_PUBLIC *outPub)
+TPM_RC TSS_Create(TSS_DEVICE *tpm, TSS_SESSION* sess, TPM_HANDLE parent, TPM2B_SENSITIVE_CREATE *sensCreate,
+    TPM2B_PUBLIC *inPub, TPM2B_PRIVATE *outPriv, TPM2B_PUBLIC *outPub)
 {
-    TPM2B_SENSITIVE_CREATE  sensCreate = { 0 };
+    TPM2B_SENSITIVE_CREATE  locSensCreate = { 0 };
     TPM2B_DATA              outsideInfo = { 0 };
     TPML_PCR_SELECTION      creationPCR = { 0 };
-    TPM2B_CREATION_DATA     creationData;
-    TPM2B_DIGEST            creationHash;
-    TPMT_TK_CREATION        creationTicket;
 
-    return TPM2_Create(tpm, sess, parent, &sensCreate,
+    return TPM2_Create(tpm, sess, parent,
+        sensCreate ? sensCreate : &locSensCreate,
         inPub, &outsideInfo, &creationPCR,
-        outPriv, outPub, &creationData, &creationHash, &creationTicket);
+        outPriv, outPub, NULL, NULL, NULL);
 }
 
 TPM_RC
@@ -690,9 +917,9 @@ TPM2_Create(
     DISPATCH_CMD(Create, &parentHandle, 1, &session, 1);
     TSS_UNMARSHAL(TPM2B_PRIVATE, outPrivate);
     TSS_UNMARSHAL_FLAGGED(TPM2B_PUBLIC, outPublic);
-    TSS_UNMARSHAL(TPM2B_CREATION_DATA, creationData);
-    TSS_UNMARSHAL(TPM2B_DIGEST, creationHash);
-    TSS_UNMARSHAL(TPMT_TK_CREATION, creationTicket);
+    TSS_UNMARSHAL_OPT(TPM2B_CREATION_DATA, creationData);
+    TSS_UNMARSHAL_OPT(TPM2B_DIGEST, creationHash);
+    TSS_UNMARSHAL_OPT(TPMT_TK_CREATION, creationTicket);
     END_CMD();
 }
 
@@ -720,9 +947,33 @@ TPM2_CreatePrimary(
     DISPATCH_CMD(CreatePrimary, &primaryHandle, 1, &session, 1);
     *objectHandle = cmdCtx->RetHandle;
     TSS_UNMARSHAL_FLAGGED(TPM2B_PUBLIC, outPublic);
-    TSS_UNMARSHAL(TPM2B_CREATION_DATA, creationData);
-    TSS_UNMARSHAL(TPM2B_DIGEST, creationHash);
-    TSS_UNMARSHAL(TPMT_TK_CREATION, creationTicket);
+    TSS_UNMARSHAL_OPT(TPM2B_CREATION_DATA, creationData);
+    TSS_UNMARSHAL_OPT(TPM2B_DIGEST, creationHash);
+    TSS_UNMARSHAL_OPT(TPMT_TK_CREATION, creationTicket);
+    END_CMD();
+}
+
+TPM_RC
+TPM2_EncryptDecrypt(
+    TSS_DEVICE             *tpm,                // IN/OUT
+    TSS_SESSION            *session,            // IN/OUT
+    TPMI_DH_OBJECT          keyHandle,          // IN
+    TPMI_YES_NO             decrypt,            // IN
+    TPM_ALG_ID              cipherMode,         // IN
+    TPM2B_IV               *ivIn,               // IN [opt]
+    TPM2B_MAX_BUFFER       *inData,             // IN
+    TPM2B_MAX_BUFFER       *outData,            // OUT
+    TPM2B_IV               *ivOut               // OUT [opt]
+)
+{
+    BEGIN_CMD();
+    TSS_MARSHAL(TPMI_YES_NO, &decrypt);
+    TSS_MARSHAL(TPM_ALG_ID, &cipherMode);
+    TSS_MARSHAL_OPT2B(TPM2B_IV, ivIn);
+    TSS_MARSHAL(TPM2B_MAX_BUFFER, inData);
+    DISPATCH_CMD(EncryptDecrypt, &keyHandle, 1, &session, 1);
+    TSS_UNMARSHAL(TPM2B_MAX_BUFFER, outData);
+    TSS_UNMARSHAL_OPT(TPM2B_IV, ivOut);
     END_CMD();
 }
 
@@ -888,7 +1139,7 @@ TPM2_Load(
     TSS_MARSHAL(TPM2B_PUBLIC, inPublic);
     DISPATCH_CMD(Load, &parentHandle, 1, &session, 1);
     *objectHandle = cmdCtx->RetHandle;
-    TSS_UNMARSHAL(TPM2B_NAME, name);
+    TSS_UNMARSHAL_OPT(TPM2B_NAME, name);
     END_CMD();
 }
 
@@ -1079,12 +1330,10 @@ TSS_SendCommand(
 //
 // TSS helpers
 //
-
 TPMA_OBJECT ToTpmaObject(OBJECT_ATTR attrs)
 {
     return *(TPMA_OBJECT*)&attrs;
 }
-
 
 //
 // TPM commands handling
@@ -1187,261 +1436,7 @@ TSS_BuildCommand(
     return cmdSize;
 } // TSS_BuildCommand()
 
-
-  //
   // Misc TSS helpers
-  //
-
-  // Returns names of TPM_RC and TSS_STATUS codes
-const char* TSS_StatusValueName(UINT32 rc)
-{
-    static char unkCode[32];
-
-    switch (rc)
-    {
-        case TPM_RC_SUCCESS:
-            return "TPM_RC_SUCCESS";
-        case TPM_RC_BAD_TAG:
-            return "TPM_RC_BAD_TAG";
-            //
-            // VER1:
-            //
-        case TPM_RC_INITIALIZE:
-            return "TPM_RC_INITIALIZE";
-        case TPM_RC_FAILURE:
-            return "TPM_RC_FAILURE";
-        case TPM_RC_SEQUENCE:
-            return "TPM_RC_SEQUENCE";
-        case TPM_RC_PRIVATE:
-            return "TPM_RC_PRIVATE";
-        case TPM_RC_HMAC:
-            return "TPM_RC_HMAC";
-        case TPM_RC_DISABLED:
-            return "TPM_RC_DISABLED";
-        case TPM_RC_EXCLUSIVE:
-            return "TPM_RC_EXCLUSIVE";
-        case TPM_RC_AUTH_TYPE:
-            return "TPM_RC_AUTH_TYPE";
-        case TPM_RC_AUTH_MISSING:
-            return "TPM_RC_AUTH_MISSING";
-        case TPM_RC_POLICY:
-            return "TPM_RC_POLICY";
-        case TPM_RC_PCR:
-            return "TPM_RC_PCR";
-        case TPM_RC_PCR_CHANGED:
-            return "TPM_RC_PCR_CHANGED";
-        case TPM_RC_UPGRADE:
-            return "TPM_RC_UPGRADE";
-        case TPM_RC_TOO_MANY_CONTEXTS:
-            return "TPM_RC_TOO_MANY_CONTEXTS";
-        case TPM_RC_AUTH_UNAVAILABLE:
-            return "TPM_RC_AUTH_UNAVAILABLE";
-        case TPM_RC_REBOOT:
-            return "TPM_RC_REBOOT";
-        case TPM_RC_UNBALANCED:
-            return "TPM_RC_UNBALANCED";
-        case TPM_RC_COMMAND_SIZE:
-            return "TPM_RC_COMMAND_SIZE";
-        case TPM_RC_COMMAND_CODE:
-            return "TPM_RC_COMMAND_CODE";
-        case TPM_RC_AUTHSIZE:
-            return "TPM_RC_AUTHSIZE";
-        case TPM_RC_AUTH_CONTEXT:
-            return "TPM_RC_AUTH_CONTEXT";
-        case TPM_RC_NV_RANGE:
-            return "TPM_RC_NV_RANGE";
-        case TPM_RC_NV_SIZE:
-            return "TPM_RC_NV_SIZE";
-        case TPM_RC_NV_LOCKED:
-            return "TPM_RC_NV_LOCKED";
-        case TPM_RC_NV_AUTHORIZATION:
-            return "TPM_RC_NV_AUTHORIZATION";
-        case TPM_RC_NV_UNINITIALIZED:
-            return "TPM_RC_NV_UNINITIALIZED";
-        case TPM_RC_NV_SPACE:
-            return "TPM_RC_NV_SPACE";
-        case TPM_RC_NV_DEFINED:
-            return "TPM_RC_NV_DEFINED";
-        case TPM_RC_BAD_CONTEXT:
-            return "TPM_RC_BAD_CONTEXT";
-        case TPM_RC_CPHASH:
-            return "TPM_RC_CPHASH";
-        case TPM_RC_PARENT:
-            return "TPM_RC_PARENT";
-        case TPM_RC_NEEDS_TEST:
-            return "TPM_RC_NEEDS_TEST";
-        case TPM_RC_NO_RESULT:
-            return "TPM_RC_NO_RESULT";
-        case TPM_RC_SENSITIVE:
-            return "TPM_RC_SENSITIVE";
-        case RC_MAX_FM0:
-            return "RC_MAX_FM0";
-            //
-            // FMT1
-            //
-        case TPM_RC_ASYMMETRIC:
-            return "TPM_RC_ASYMMETRIC";
-        case TPM_RC_ATTRIBUTES:
-            return "TPM_RC_ATTRIBUTES";
-        case TPM_RC_HASH:
-            return "TPM_RC_HASH";
-        case TPM_RC_VALUE:
-            return "TPM_RC_VALUE";
-        case TPM_RC_HIERARCHY:
-            return "TPM_RC_HIERARCHY";
-        case TPM_RC_KEY_SIZE:
-            return "TPM_RC_KEY_SIZE";
-        case TPM_RC_MGF:
-            return "TPM_RC_MGF";
-        case TPM_RC_MODE:
-            return "TPM_RC_MODE";
-        case TPM_RC_TYPE:
-            return "TPM_RC_TYPE";
-        case TPM_RC_HANDLE:
-            return "TPM_RC_HANDLE";
-        case TPM_RC_KDF:
-            return "TPM_RC_KDF";
-        case TPM_RC_RANGE:
-            return "TPM_RC_RANGE";
-        case TPM_RC_AUTH_FAIL:
-            return "TPM_RC_AUTH_FAIL";
-        case TPM_RC_NONCE:
-            return "TPM_RC_NONCE";
-        case TPM_RC_PP:
-            return "TPM_RC_PP";
-        case TPM_RC_SCHEME:
-            return "TPM_RC_SCHEME";
-        case TPM_RC_SIZE:
-            return "TPM_RC_SIZE";
-        case TPM_RC_SYMMETRIC:
-            return "TPM_RC_SYMMETRIC";
-        case TPM_RC_TAG:
-            return "TPM_RC_TAG";
-        case TPM_RC_SELECTOR:
-            return "TPM_RC_SELECTOR";
-        case TPM_RC_INSUFFICIENT:
-            return "TPM_RC_INSUFFICIENT";
-        case TPM_RC_SIGNATURE:
-            return "TPM_RC_SIGNATURE";
-        case TPM_RC_KEY:
-            return "TPM_RC_KEY";
-        case TPM_RC_POLICY_FAIL:
-            return "TPM_RC_POLICY_FAIL";
-        case TPM_RC_INTEGRITY:
-            return "TPM_RC_INTEGRITY";
-        case TPM_RC_TICKET:
-            return "TPM_RC_TICKET";
-        case TPM_RC_RESERVED_BITS:
-            return "TPM_RC_RESERVED_BITS";
-        case TPM_RC_BAD_AUTH:
-            return "TPM_RC_BAD_AUTH";
-        case TPM_RC_EXPIRED:
-            return "TPM_RC_EXPIRED";
-        case TPM_RC_POLICY_CC:
-            return "TPM_RC_POLICY_CC";
-        case TPM_RC_BINDING:
-            return "TPM_RC_BINDING";
-        case TPM_RC_CURVE:
-            return "TPM_RC_CURVE";
-        case TPM_RC_ECC_POINT:
-            return "TPM_RC_ECC_POINT";
-            //
-            // WARN
-            //
-        case TPM_RC_CONTEXT_GAP:
-            return "TPM_RC_CONTEXT_GAP";
-        case TPM_RC_OBJECT_MEMORY:
-            return "TPM_RC_OBJECT_MEMORY";
-        case TPM_RC_SESSION_MEMORY:
-            return "TPM_RC_SESSION_MEMORY";
-        case TPM_RC_MEMORY:
-            return "TPM_RC_MEMORY";
-        case TPM_RC_SESSION_HANDLES:
-            return "TPM_RC_SESSION_HANDLES";
-        case TPM_RC_OBJECT_HANDLES:
-            return "TPM_RC_OBJECT_HANDLES";
-        case TPM_RC_LOCALITY:
-            return "TPM_RC_LOCALITY";
-        case TPM_RC_YIELDED:
-            return "TPM_RC_YIELDED";
-        case TPM_RC_CANCELED:
-            return "TPM_RC_CANCELED";
-        case TPM_RC_TESTING:
-            return "TPM_RC_TESTING";
-        case TPM_RC_REFERENCE_H0:
-            return "TPM_RC_REFERENCE_H0";
-        case TPM_RC_REFERENCE_H1:
-            return "TPM_RC_REFERENCE_H1";
-        case TPM_RC_REFERENCE_H2:
-            return "TPM_RC_REFERENCE_H2";
-        case TPM_RC_REFERENCE_H3:
-            return "TPM_RC_REFERENCE_H3";
-        case TPM_RC_REFERENCE_H4:
-            return "TPM_RC_REFERENCE_H4";
-        case TPM_RC_REFERENCE_H5:
-            return "TPM_RC_REFERENCE_H5";
-        case TPM_RC_REFERENCE_H6:
-            return "TPM_RC_REFERENCE_H6";
-        case TPM_RC_REFERENCE_S0:
-            return "TPM_RC_REFERENCE_S0";
-        case TPM_RC_REFERENCE_S1:
-            return "TPM_RC_REFERENCE_S1";
-        case TPM_RC_REFERENCE_S2:
-            return "TPM_RC_REFERENCE_S2";
-        case TPM_RC_REFERENCE_S3:
-            return "TPM_RC_REFERENCE_S3";
-        case TPM_RC_REFERENCE_S4:
-            return "TPM_RC_REFERENCE_S4";
-        case TPM_RC_REFERENCE_S5:
-            return "TPM_RC_REFERENCE_S5";
-        case TPM_RC_REFERENCE_S6:
-            return "TPM_RC_REFERENCE_S6";
-        case TPM_RC_NV_RATE:
-            return "TPM_RC_NV_RATE";
-        case TPM_RC_LOCKOUT:
-            return "TPM_RC_LOCKOUT";
-        case TPM_RC_RETRY:
-            return "TPM_RC_RETRY";
-        case TPM_RC_NV_UNAVAILABLE:
-            return "TPM_RC_NV_UNAVAILABLE";
-        case TPM_RC_NOT_USED:
-            return "TPM_RC_NOT_USED";
-
-            //
-            // TSS general
-            //
-        case TSS_E_INVALID_PARAM:
-            return "TSS_E_INVALID_PARAM";
-        case TSS_E_SOCK_INIT:
-            return "TSS_E_SOCK_INIT";
-        case TSS_E_SOCK_SHUTDOWN:
-            return "TSS_E_SOCK_SHUTDOWN";
-        case TSS_E_TPM_CONNECT:
-            return "TSS_E_TPM_CONNECT";
-        case TSS_E_TPM_SIM_INCOMPAT_VER:
-            return "TSS_E_TPM_SIM_INCOMPAT_VER";
-        case TSS_E_TPM_SIM_STARTUP:
-            return "TSS_E_TPM_SIM_STARTUP";
-
-            //
-            // TSS communication with TPM
-            //
-        case TSS_E_COMM:
-            return "TSS_E_COMM";
-        case TSS_E_TPM_TRANSACTION:
-            return "TSS_E_TPM_TRANSACTION";
-        case TSS_E_TPM_SIM_BAD_ACK:
-            return "TSS_E_TPM_SIM_BAD_ACK";
-        case TSS_E_BAD_RESPONSE:
-            return "TSS_E_BAD_RESPONSE";
-        case TSS_E_BAD_RESPONSE_LEN:
-            return "TSS_E_BAD_RESPONSE_LEN";
-    }
-
-    snprintf(unkCode, sizeof(unkCode), "0x%08X", rc);
-    return unkCode;
-} // TSS_StatusValueName()
-
   // Returns mesages corresponding to TSS_STATUS codes
 const char* TSS_GetStatusMessage(UINT32 status)
 {

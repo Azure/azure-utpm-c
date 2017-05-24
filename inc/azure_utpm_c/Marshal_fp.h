@@ -631,21 +631,15 @@ TPM2B_MAX_NV_BUFFER_Marshal(TPM2B_MAX_NV_BUFFER *source, BYTE** buffer, INT32 *s
 #define TPM2B_TIMEOUT_Marshal(source, buffer, size) \
             TPM2B_DIGEST_Marshal((TPM2B_DIGEST *)(source), buffer, size)
 
-
 // Table 2:82 - Definition of TPM2B_IV Structure  (StructureTable)
-TPM_RC
-TPM2B_IV_Unmarshal(TPM2B_IV *target, BYTE** buffer, INT32 *size);
-UINT16
-TPM2B_IV_Marshal(TPM2B_IV *source, BYTE** buffer, INT32 *size);
-
+MOCKABLE_FUNCTION(, TPM_RC, TPM2B_IV_Unmarshal, TPM2B_IV*, target, BYTE**, buffer, INT32*, size);
+MOCKABLE_FUNCTION(, UINT16, TPM2B_IV_Marshal, TPM2B_IV*, source, BYTE**, buffer, INT32*, size);
 
 // Table 2:83 - Definition of TPMU_NAME Union  (UnionTable)
-
 
 // Table 2:84 - Definition of TPM2B_NAME Structure (StructureTable)
 MOCKABLE_FUNCTION(, TPM_RC, TPM2B_NAME_Unmarshal, TPM2B_NAME*, target, BYTE**, buffer, INT32*, size);
 MOCKABLE_FUNCTION(, UINT16, TPM2B_NAME_Marshal, TPM2B_NAME*, source, BYTE**, buffer, INT32*, size);
-
 
 // Table 2:85 - Definition of TPMS_PCR_SELECT Structure (StructureTable)
 MOCKABLE_FUNCTION(, TPM_RC, TPMS_PCR_SELECT_Unmarshal, TPMS_PCR_SELECT*, target, BYTE**, buffer, INT32*, size);

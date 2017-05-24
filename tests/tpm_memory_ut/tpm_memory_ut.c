@@ -40,6 +40,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/Memory_fp.h"
+#include "azure_utpm_c/TpmTypes.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -48,6 +49,8 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+#define BUFFER_LENGTH       10
 
 DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
@@ -64,7 +67,7 @@ static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 static TEST_MUTEX_HANDLE g_testByTest;
 static TEST_MUTEX_HANDLE g_dllByDll;
 
-BEGIN_TEST_SUITE(tpm_codec_ut)
+BEGIN_TEST_SUITE(tpm_memory_ut)
 
     TEST_SUITE_INITIALIZE(suite_init)
     {
@@ -127,7 +130,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(MemoryCopy_dest_NULL_fail)
     {
         //arrange
-        unsigned char src[10] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA };
+        unsigned char src[BUFFER_LENGTH] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA };
 
         //act
         MemoryCopy(NULL, src, sizeof(src) );
@@ -141,7 +144,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(MemoryCopy_src_NULL_fail)
     {
         //arrange
-        unsigned char dest[10];
+        unsigned char dest[BUFFER_LENGTH];
 
         //act
         MemoryCopy(dest, NULL, sizeof(dest));
@@ -155,16 +158,34 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(MemoryCopy_succeed)
     {
         //arrange
-        unsigned char src[10] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA };
-        unsigned char dest[10];
+        unsigned char src[BUFFER_LENGTH] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA };
+        unsigned char dest[BUFFER_LENGTH];
 
         //act
         MemoryCopy(dest, src, sizeof(dest));
 
         //assert
+        ASSERT_ARE_EQUAL(int, 0, memcmp(src, dest, 10));
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
         //cleanup
     }
 
-END_TEST_SUITE(tpm_codec_ut)
+    TEST_FUNCTION(MemoryCopy2B_succeed)
+    {
+        //arrange
+        TPM2B_DIGEST src = { BUFFER_LENGTH, { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA } };
+        TPM2B_DIGEST dest;
+
+        //act
+        int16_t result = MemoryCopy2B(&dest.b, &src.b, sizeof(dest));
+
+        //assert
+        ASSERT_ARE_EQUAL(int16_t, 10, result);
+        ASSERT_ARE_EQUAL(int, 0, memcmp(dest.b.buffer, src.b.buffer, BUFFER_LENGTH));
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+END_TEST_SUITE(tpm_memory_ut)
