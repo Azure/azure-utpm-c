@@ -56,9 +56,6 @@ extern "C"
 
 DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
-//TEST_DEFINE_ENUM_TYPE(TPM_COMM_TYPE, TPM_COMM_TYPE_VALUES);
-//IMPLEMENT_UMOCK_C_ENUM_TYPE(TPM_COMM_TYPE, TPM_COMM_TYPE_VALUES);
-
 static TPM_COMM_HANDLE my_tpm_comm_create(void)
 {
     return (TPM_COMM_HANDLE)my_gballoc_malloc(1);
@@ -98,15 +95,8 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
 
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_HANDLE, void*);
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_TYPE, int);
-        /*REGISTER_UMOCK_ALIAS_TYPE(XIO_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_IO_OPEN_COMPLETE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_BYTES_RECEIVED, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_IO_ERROR, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(TICK_COUNTER_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_SEND_COMPLETE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_IO_CLOSE_COMPLETE, void*);
-        //REGISTER_UMOCK_ALIAS_TYPE(ON_IO_CLOSE_COMPLETE, void*);
-        */
+        REGISTER_UMOCK_ALIAS_TYPE(BOOL, int);
+
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
@@ -116,17 +106,9 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         REGISTER_GLOBAL_MOCK_RETURN(tpm_comm_submit_command, 0);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_comm_submit_command, __LINE__);
 
-        /*
-        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tickcounter_create, NULL);
-        REGISTER_GLOBAL_MOCK_HOOK(tickcounter_destroy, my_tickcounter_destroy);*/
-
         REGISTER_GLOBAL_MOCK_HOOK(tpm_comm_create, my_tpm_comm_create);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_comm_create, NULL);
         REGISTER_GLOBAL_MOCK_HOOK(tpm_comm_destroy, my_tpm_comm_destroy);
-        /*REGISTER_GLOBAL_MOCK_HOOK(xio_open, my_xio_open);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_close, my_xio_close);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_send, my_xio_send);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_dowork, my_xio_dowork);*/
     }
 
     TEST_SUITE_CLEANUP(suite_cleanup)
@@ -165,8 +147,72 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         return result;
     }
 
-    static void setup_wait_to_complete_mocks(void)
+    static void setup_tss_policy_secret_mocks(void)
     {
+        uint32_t expected_size = 4096;
+        uint32_t raw_resp = 4096;
+
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+        STRICT_EXPECTED_CALL(TPMS_AUTH_COMMAND_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(tpm_comm_submit_command(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPMI_ST_COMMAND_TAG_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&expected_size, sizeof(expected_size));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&raw_resp, sizeof(raw_resp));
+        STRICT_EXPECTED_CALL(TPM2B_DIGEST_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPMT_TK_AUTH_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    }
+
+    static void setup_tss_start_auth_session_mocks(void)
+    {
+        uint32_t expected_size = 4096;
+        uint32_t raw_resp = 4096;
+
+        STRICT_EXPECTED_CALL(TPM2B_DIGEST_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT8_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPMT_SYM_DEF_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(tpm_comm_submit_command(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPMI_ST_COMMAND_TAG_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&expected_size, sizeof(expected_size));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&raw_resp, sizeof(raw_resp));
+        STRICT_EXPECTED_CALL(TPM2B_DIGEST_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(MemoryCopy2B(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    }
+
+    static void setup_dispatch_cmd_mocks(void)
+    {
+        uint32_t expected_size = 4096;
+        uint32_t raw_resp = 4096;
+
+        STRICT_EXPECTED_CALL(tpm_comm_submit_command(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPMI_ST_COMMAND_TAG_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&expected_size, sizeof(expected_size));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&raw_resp, sizeof(raw_resp));
     }
 
     TEST_FUNCTION(TSS_CreatePwAuthSession_auth_value_NULL_fail)
@@ -309,6 +355,172 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         Deinit_TPM_Codec(NULL);
 
         //assert
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TSS_StartAuthSession_tss_device_NULL_fail)
+    {
+        //arrange
+        TPMA_SESSION sess_attrib = { 1 };
+        TSS_SESSION session;
+
+        //act
+        TPM_RC result = TSS_StartAuthSession(NULL, TPM_SE_POLICY, TPM_ALG_SHA256, sess_attrib, &session);
+
+        //assert
+        ASSERT_ARE_NOT_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TSS_StartAuthSession_tss_session_NULL_fail)
+    {
+        //arrange
+        TSS_DEVICE tss_dev;
+        TPMA_SESSION sess_attrib = { 1 };
+
+        //act
+        TPM_RC result = TSS_StartAuthSession(&tss_dev, TPM_SE_POLICY, TPM_ALG_SHA256, sess_attrib, NULL);
+
+        //assert
+        ASSERT_ARE_NOT_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TSS_StartAuthSession_succeed)
+    {
+        //arrange
+        TSS_DEVICE tss_dev;
+        TPMA_SESSION sess_attrib = { 1 };
+        TSS_SESSION session;
+
+        setup_tss_start_auth_session_mocks();
+
+        //act
+        TPM_RC result = TSS_StartAuthSession(&tss_dev, TPM_SE_POLICY, TPM_ALG_SHA256, sess_attrib, &session);
+
+        //assert
+        ASSERT_ARE_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TSS_PolicySecret_tss_sesssion_NULL_fail)
+    {
+        //arrange
+        TSS_DEVICE tss_dev;
+        TSS_SESSION session;
+
+        //act
+        TPM_RC result = TSS_PolicySecret(&tss_dev, NULL, TPM_RH_ENDORSEMENT, &session, NULL, 0);
+
+        //assert
+        ASSERT_ARE_NOT_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TSS_PolicySecret_policy_sesssion_NULL_fail)
+    {
+        //arrange
+        TSS_DEVICE tss_dev;
+        TSS_SESSION session;
+
+        //act
+        TPM_RC result = TSS_PolicySecret(&tss_dev, &session, TPM_RH_ENDORSEMENT, NULL, NULL, 0);
+
+        //assert
+        ASSERT_ARE_NOT_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TSS_PolicySecret_succeed)
+    {
+        //arrange
+        TSS_DEVICE tss_dev;
+        TSS_SESSION session;
+
+        setup_tss_policy_secret_mocks();
+
+        //act
+        TPM_RC result = TSS_PolicySecret(&tss_dev, &session, TPM_RH_ENDORSEMENT, &session, NULL, 0);
+
+        //assert
+        ASSERT_ARE_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TPM2_ReadPublic_tss_device_NULL_fail)
+    {
+        //arrange
+        TPM_HANDLE request_handle = HR_PERSISTENT;
+        TPM2B_PUBLIC tpm_public;
+        TPM2B_NAME tpm_name;
+        TPM2B_NAME qualified_name;
+
+        //act
+        TPM_RC result = TPM2_ReadPublic(NULL, request_handle, &tpm_public, &tpm_name, &qualified_name);
+
+        //assert
+        ASSERT_ARE_NOT_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TPM2_ReadPublic_tpm_public_NULL_fail)
+    {
+        //arrange
+        TSS_DEVICE tss_dev;
+        TPM_HANDLE request_handle = HR_PERSISTENT;
+        TPM2B_NAME tpm_name;
+        TPM2B_NAME qualified_name;
+
+        //act
+        TPM_RC result = TPM2_ReadPublic(&tss_dev, request_handle, NULL, &tpm_name, &qualified_name);
+
+        //assert
+        ASSERT_ARE_NOT_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TPM2_ReadPublic_succeed)
+    {
+        //arrange
+        TSS_DEVICE tss_dev;
+        TPM_HANDLE request_handle = HR_PERSISTENT;
+        TPM2B_PUBLIC tpm_public;
+        TPM2B_NAME tpm_name;
+        TPM2B_NAME qualified_name;
+
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        setup_dispatch_cmd_mocks();
+        STRICT_EXPECTED_CALL(TPM2B_PUBLIC_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(TPM2B_NAME_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPM2B_NAME_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+        //act
+        TPM_RC result = TPM2_ReadPublic(&tss_dev, request_handle, &tpm_public, &tpm_name, &qualified_name);
+
+        //assert
+        ASSERT_ARE_EQUAL(uint32_t, TPM_RC_SUCCESS, result);
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
         //cleanup

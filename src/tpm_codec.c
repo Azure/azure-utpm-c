@@ -467,10 +467,12 @@ static bool IsCommMediumError(UINT32 code)
 static TPM_RC CleanResponseCode(TPM_RC rawResponse)
 {
     if (IsCommMediumError(rawResponse))
+    {
+        LogError("invalid rawResponse (0x%0x)", rawResponse);
         return rawResponse;
+    }
 
-    UINT32 mask = rawResponse & RC_FMT1 ? RC_FMT1 | 0x3F
-        : TPM_RC_NOT_USED; // RC_WARN | RC_VER1 | 0x7F
+    UINT32 mask = rawResponse & RC_FMT1 ? RC_FMT1 | 0x3F : TPM_RC_NOT_USED; // RC_WARN | RC_VER1 | 0x7F
     return rawResponse & mask;
 }
 
@@ -484,7 +486,7 @@ TPM_RC Initialize_TPM_Codec(TSS_DEVICE* tpm)
     }
     else if ( (tpm->tpm_comm_handle = tpm_comm_create()) == NULL)
     {
-        LogError("Failure creating tpm_comm object");
+        LogError("creating tpm_comm object");
         result = TPM_RC_FAILURE;
     }
     else
@@ -495,7 +497,7 @@ TPM_RC Initialize_TPM_Codec(TSS_DEVICE* tpm)
             result = TPM2_Startup(tpm, TPM_SU_CLEAR);
             if (result != TPM_RC_SUCCESS && result != TPM_RC_INITIALIZE)
             {
-                LogError("Failure calling tpm startup");
+                LogError("calling tpm startup");
                 tpm_comm_destroy(tpm->tpm_comm_handle);
             }
             else
@@ -544,7 +546,7 @@ UINT32 SignData(
 
     if (sigBufSize < sigSize)
     {
-        LogError("Failure Signature buffer size (%uz) is less than required size (%uz)", sigBufSize, sigSize);
+        LogError("Signature buffer size (%uz) is less than required size (%uz)", sigBufSize, sigSize);
         result = sigSize;
     }
     else
@@ -636,11 +638,20 @@ TSS_PolicySecret(
     INT32                   expiration          // IN
 )
 {
+    TPM_RC result;
     TPM2B_TIMEOUT   timeout;
-    return TPM2_PolicySecret(tpm, session,
-        authHandle, policySession->SessIn.sessionHandle,
-        nonceTPM, NULL, NULL, expiration,
-        &timeout, NULL);
+    if (session == NULL || policySession == NULL)
+    {
+        LogError("Invalid parameter specified policySession: %p session: %p", policySession, session);
+        result = TPM_RC_FAILURE;
+    }
+    else
+    {
+        result = TPM2_PolicySecret(tpm, session,
+            authHandle, policySession->SessIn.sessionHandle,
+            nonceTPM, NULL, NULL, expiration, &timeout, NULL);
+    }
+    return result;
 }
 
 TPM_RC
@@ -759,25 +770,33 @@ TSS_StartAuthSession(
     TSS_SESSION            *session             // OUT
 )
 {
-    UINT16          digestSize = TSS_GetDigestSize(authHash);
-    TPM2B_NONCE     nonceCaller;
+    TPM_RC result;
+    TPM2B_NONCE nonceCaller;
+    UINT16 digestSize = TSS_GetDigestSize(authHash);
     nonceCaller.t.size = digestSize;
     TSS_RandomBytes(nonceCaller.t.buffer, digestSize);
 
-    TPM_RC rc = TPM2_StartAuthSession(tpm, TPM_RH_NULL, TPM_RH_NULL, &nonceCaller, NULL,
-        sessionType, NULL, authHash,
-        &session->SessIn.sessionHandle, &session->SessOut.nonce);
-    if (rc == TPM_RC_SUCCESS)
+    if (tpm == NULL || session == NULL)
     {
-        TSS_COPY2B(session->SessIn.nonce, nonceCaller);
-        session->SessIn.sessionAttributes = sessAttrs;
-        session->SessOut.sessionAttributes = sessAttrs;
+        LogError("Invalid parameter specified tpm: %p session: %p", tpm, session);
+        result = TPM_RC_FAILURE;
     }
     else
     {
-        LogError("Failure calling TPM2_StartAuthSession 0x%x: %s", rc, TSS_StatusValueName(rc) );
+        result = TPM2_StartAuthSession(tpm, TPM_RH_NULL, TPM_RH_NULL, &nonceCaller, NULL,
+            sessionType, NULL, authHash, &session->SessIn.sessionHandle, &session->SessOut.nonce);
+        if (result == TPM_RC_SUCCESS)
+        {
+            TSS_COPY2B(session->SessIn.nonce, nonceCaller);
+            session->SessIn.sessionAttributes = sessAttrs;
+            session->SessOut.sessionAttributes = sessAttrs;
+        }
+        else
+        {
+            LogError("TPM2_StartAuthSession 0x%x: %s", result, TSS_StatusValueName(result));
+        }
     }
-    return rc;
+    return result;
 }
 
 //
@@ -1181,12 +1200,20 @@ TPM2_ReadPublic(
     TPM2B_NAME         *qualifiedName           // OUT
 )
 {
-    BEGIN_CMD();
-    DISPATCH_CMD(ReadPublic, &objectHandle, 1, NULL, 0);
-    TSS_UNMARSHAL_FLAGGED(TPM2B_PUBLIC, outPublic);
-    TSS_UNMARSHAL(TPM2B_NAME, name);
-    TSS_UNMARSHAL(TPM2B_NAME, qualifiedName);
-    END_CMD();
+    if (outPublic == NULL || name == NULL || qualifiedName == NULL)
+    {
+        LogError("Invalid parameter outPublic: %p, name: %p, qualifiedName: %p", outPublic, name, qualifiedName);
+        return TPM_RC_FAILURE;
+    }
+    else
+    {
+        BEGIN_CMD();
+        DISPATCH_CMD(ReadPublic, &objectHandle, 1, NULL, 0);
+        TSS_UNMARSHAL_FLAGGED(TPM2B_PUBLIC, outPublic);
+        TSS_UNMARSHAL(TPM2B_NAME, name);
+        TSS_UNMARSHAL(TPM2B_NAME, qualifiedName);
+        END_CMD();
+    }
 }
 
 TPM_RC
@@ -1208,7 +1235,7 @@ TSS_DispatchCmd(
 
     if (tpm == NULL || cmdCtx == NULL)
     {
-        LogError("invalid paramer specified");
+        LogError("Invalid paramer specified tpm: %p, cmdCtx: %p", tpm, cmdCtx);
         result = TPM_RC_FAILURE;
     }
     else
@@ -1224,7 +1251,7 @@ TSS_DispatchCmd(
         res = TSS_SendCommand(tpm, cmdCtx->CmdBuffer, cmdCtx->CmdSize, cmdCtx->RespBuffer, (INT32*)&cmdCtx->RespSize);
         if (res != TSS_SUCCESS)
         {
-            LogError("Failure Sending command to tpm %d.", res);
+            LogError("Sending command to tpm %d.", res);
             result = TPM_RC_COMMAND_CODE;
         }
         else
@@ -1235,7 +1262,7 @@ TSS_DispatchCmd(
             if (*(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_NO_SESSIONS
                 && *(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_SESSIONS)
             {
-                LogError("Failure response buffer is invalid.");
+                LogError("response buffer is invalid.");
                 result = TPM_RC_BAD_TAG;
             }
             else
@@ -1249,7 +1276,7 @@ TSS_DispatchCmd(
 
                 if (cmdCtx->RespSize != expectedSize)
                 {
-                    LogError("Failure response size is not expected size.");
+                    LogError("response size is not expected size.");
                     result = TPM_RC_COMMAND_SIZE;//TSS_E_BAD_RESPONSE_LEN;
                 }
                 else
@@ -1316,7 +1343,7 @@ TSS_SendCommand(
         // Send the command to the TPM
         if (tpm_comm_submit_command(tpm->tpm_comm_handle, cmdBuffer, cmdSize, respBuffer, (uint32_t*)respSize) != 0)
         {
-            LogError("Failure submitting command to TPM Communication.");
+            LogError("submitting command to TPM Communication.");
             result = TSS_E_TPM_TRANSACTION;
         }
         else
@@ -1438,7 +1465,7 @@ TSS_BuildCommand(
 
   // Misc TSS helpers
   // Returns mesages corresponding to TSS_STATUS codes
-const char* TSS_GetStatusMessage(UINT32 status)
+static const char* TSS_GetStatusMessage(UINT32 status)
 {
     switch (status)
     {
@@ -1501,7 +1528,7 @@ TPM2_StartAuthSession(
     TPM2B_NONCE            *nonceTPM            // OUT
 )
 {
-    TPM_HANDLE handles[2];// = { tpmKey, bind };
+    TPM_HANDLE handles[2];
     handles[0] = tpmKey;
     handles[1] = bind;
 
