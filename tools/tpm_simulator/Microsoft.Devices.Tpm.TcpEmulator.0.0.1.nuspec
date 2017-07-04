@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Microsoft.Devices.Tpm.TcpEmulator</id>
-        <version>1.0.1</version>
+        <version>0.0.1</version>
         <title>Tcp Emulator for Tpm 2.0</title>
         <authors>Microsoft Corp</authors>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
