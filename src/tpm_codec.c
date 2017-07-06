@@ -34,6 +34,8 @@ static TPM2B_PUBLIC    DrsIdKeyPub = { TPM_ALG_NULL };
 
 typedef const char* (*ErrCodeMsgFnPtr)(UINT32 msgID);
 
+static const char* TSS_StatusValueName(UINT32 rc);
+
 typedef struct
 {
     // IN: Size of parameters buffer (bytes)
@@ -107,266 +109,6 @@ static void PrintErrorV(const char* msg, int errCode, ErrCodeMsgFnPtr getErrCode
     }
     if (newLine)
         fprintf(stderr, "\n");
-}
-
-// Returns names of TPM_RC and TSS_STATUS codes
-static const char* TSS_StatusValueName(UINT32 rc)
-{
-    static char unkCode[32];
-
-    switch (rc)
-    {
-    case TPM_RC_SUCCESS:
-        return "TPM_RC_SUCCESS";
-    case TPM_RC_BAD_TAG:
-        return "TPM_RC_BAD_TAG";
-        //
-        // VER1:
-        //
-    case TPM_RC_INITIALIZE:
-        return "TPM_RC_INITIALIZE";
-    case TPM_RC_FAILURE:
-        return "TPM_RC_FAILURE";
-    case TPM_RC_SEQUENCE:
-        return "TPM_RC_SEQUENCE";
-    case TPM_RC_PRIVATE:
-        return "TPM_RC_PRIVATE";
-    case TPM_RC_HMAC:
-        return "TPM_RC_HMAC";
-    case TPM_RC_DISABLED:
-        return "TPM_RC_DISABLED";
-    case TPM_RC_EXCLUSIVE:
-        return "TPM_RC_EXCLUSIVE";
-    case TPM_RC_AUTH_TYPE:
-        return "TPM_RC_AUTH_TYPE";
-    case TPM_RC_AUTH_MISSING:
-        return "TPM_RC_AUTH_MISSING";
-    case TPM_RC_POLICY:
-        return "TPM_RC_POLICY";
-    case TPM_RC_PCR:
-        return "TPM_RC_PCR";
-    case TPM_RC_PCR_CHANGED:
-        return "TPM_RC_PCR_CHANGED";
-    case TPM_RC_UPGRADE:
-        return "TPM_RC_UPGRADE";
-    case TPM_RC_TOO_MANY_CONTEXTS:
-        return "TPM_RC_TOO_MANY_CONTEXTS";
-    case TPM_RC_AUTH_UNAVAILABLE:
-        return "TPM_RC_AUTH_UNAVAILABLE";
-    case TPM_RC_REBOOT:
-        return "TPM_RC_REBOOT";
-    case TPM_RC_UNBALANCED:
-        return "TPM_RC_UNBALANCED";
-    case TPM_RC_COMMAND_SIZE:
-        return "TPM_RC_COMMAND_SIZE";
-    case TPM_RC_COMMAND_CODE:
-        return "TPM_RC_COMMAND_CODE";
-    case TPM_RC_AUTHSIZE:
-        return "TPM_RC_AUTHSIZE";
-    case TPM_RC_AUTH_CONTEXT:
-        return "TPM_RC_AUTH_CONTEXT";
-    case TPM_RC_NV_RANGE:
-        return "TPM_RC_NV_RANGE";
-    case TPM_RC_NV_SIZE:
-        return "TPM_RC_NV_SIZE";
-    case TPM_RC_NV_LOCKED:
-        return "TPM_RC_NV_LOCKED";
-    case TPM_RC_NV_AUTHORIZATION:
-        return "TPM_RC_NV_AUTHORIZATION";
-    case TPM_RC_NV_UNINITIALIZED:
-        return "TPM_RC_NV_UNINITIALIZED";
-    case TPM_RC_NV_SPACE:
-        return "TPM_RC_NV_SPACE";
-    case TPM_RC_NV_DEFINED:
-        return "TPM_RC_NV_DEFINED";
-    case TPM_RC_BAD_CONTEXT:
-        return "TPM_RC_BAD_CONTEXT";
-    case TPM_RC_CPHASH:
-        return "TPM_RC_CPHASH";
-    case TPM_RC_PARENT:
-        return "TPM_RC_PARENT";
-    case TPM_RC_NEEDS_TEST:
-        return "TPM_RC_NEEDS_TEST";
-    case TPM_RC_NO_RESULT:
-        return "TPM_RC_NO_RESULT";
-    case TPM_RC_SENSITIVE:
-        return "TPM_RC_SENSITIVE";
-    case RC_MAX_FM0:
-        return "RC_MAX_FM0";
-        //
-        // FMT1
-        //
-    case TPM_RC_ASYMMETRIC:
-        return "TPM_RC_ASYMMETRIC";
-    case TPM_RC_ATTRIBUTES:
-        return "TPM_RC_ATTRIBUTES";
-    case TPM_RC_HASH:
-        return "TPM_RC_HASH";
-    case TPM_RC_VALUE:
-        return "TPM_RC_VALUE";
-    case TPM_RC_HIERARCHY:
-        return "TPM_RC_HIERARCHY";
-    case TPM_RC_KEY_SIZE:
-        return "TPM_RC_KEY_SIZE";
-    case TPM_RC_MGF:
-        return "TPM_RC_MGF";
-    case TPM_RC_MODE:
-        return "TPM_RC_MODE";
-    case TPM_RC_TYPE:
-        return "TPM_RC_TYPE";
-    case TPM_RC_HANDLE:
-        return "TPM_RC_HANDLE";
-    case TPM_RC_KDF:
-        return "TPM_RC_KDF";
-    case TPM_RC_RANGE:
-        return "TPM_RC_RANGE";
-    case TPM_RC_AUTH_FAIL:
-        return "TPM_RC_AUTH_FAIL";
-    case TPM_RC_NONCE:
-        return "TPM_RC_NONCE";
-    case TPM_RC_PP:
-        return "TPM_RC_PP";
-    case TPM_RC_SCHEME:
-        return "TPM_RC_SCHEME";
-    case TPM_RC_SIZE:
-        return "TPM_RC_SIZE";
-    case TPM_RC_SYMMETRIC:
-        return "TPM_RC_SYMMETRIC";
-    case TPM_RC_TAG:
-        return "TPM_RC_TAG";
-    case TPM_RC_SELECTOR:
-        return "TPM_RC_SELECTOR";
-    case TPM_RC_INSUFFICIENT:
-        return "TPM_RC_INSUFFICIENT";
-    case TPM_RC_SIGNATURE:
-        return "TPM_RC_SIGNATURE";
-    case TPM_RC_KEY:
-        return "TPM_RC_KEY";
-    case TPM_RC_POLICY_FAIL:
-        return "TPM_RC_POLICY_FAIL";
-    case TPM_RC_INTEGRITY:
-        return "TPM_RC_INTEGRITY";
-    case TPM_RC_TICKET:
-        return "TPM_RC_TICKET";
-    case TPM_RC_RESERVED_BITS:
-        return "TPM_RC_RESERVED_BITS";
-    case TPM_RC_BAD_AUTH:
-        return "TPM_RC_BAD_AUTH";
-    case TPM_RC_EXPIRED:
-        return "TPM_RC_EXPIRED";
-    case TPM_RC_POLICY_CC:
-        return "TPM_RC_POLICY_CC";
-    case TPM_RC_BINDING:
-        return "TPM_RC_BINDING";
-    case TPM_RC_CURVE:
-        return "TPM_RC_CURVE";
-    case TPM_RC_ECC_POINT:
-        return "TPM_RC_ECC_POINT";
-        //
-        // WARN
-        //
-    case TPM_RC_CONTEXT_GAP:
-        return "TPM_RC_CONTEXT_GAP";
-    case TPM_RC_OBJECT_MEMORY:
-        return "TPM_RC_OBJECT_MEMORY";
-    case TPM_RC_SESSION_MEMORY:
-        return "TPM_RC_SESSION_MEMORY";
-    case TPM_RC_MEMORY:
-        return "TPM_RC_MEMORY";
-    case TPM_RC_SESSION_HANDLES:
-        return "TPM_RC_SESSION_HANDLES";
-    case TPM_RC_OBJECT_HANDLES:
-        return "TPM_RC_OBJECT_HANDLES";
-    case TPM_RC_LOCALITY:
-        return "TPM_RC_LOCALITY";
-    case TPM_RC_YIELDED:
-        return "TPM_RC_YIELDED";
-    case TPM_RC_CANCELED:
-        return "TPM_RC_CANCELED";
-    case TPM_RC_TESTING:
-        return "TPM_RC_TESTING";
-    case TPM_RC_REFERENCE_H0:
-        return "TPM_RC_REFERENCE_H0";
-    case TPM_RC_REFERENCE_H1:
-        return "TPM_RC_REFERENCE_H1";
-    case TPM_RC_REFERENCE_H2:
-        return "TPM_RC_REFERENCE_H2";
-    case TPM_RC_REFERENCE_H3:
-        return "TPM_RC_REFERENCE_H3";
-    case TPM_RC_REFERENCE_H4:
-        return "TPM_RC_REFERENCE_H4";
-    case TPM_RC_REFERENCE_H5:
-        return "TPM_RC_REFERENCE_H5";
-    case TPM_RC_REFERENCE_H6:
-        return "TPM_RC_REFERENCE_H6";
-    case TPM_RC_REFERENCE_S0:
-        return "TPM_RC_REFERENCE_S0";
-    case TPM_RC_REFERENCE_S1:
-        return "TPM_RC_REFERENCE_S1";
-    case TPM_RC_REFERENCE_S2:
-        return "TPM_RC_REFERENCE_S2";
-    case TPM_RC_REFERENCE_S3:
-        return "TPM_RC_REFERENCE_S3";
-    case TPM_RC_REFERENCE_S4:
-        return "TPM_RC_REFERENCE_S4";
-    case TPM_RC_REFERENCE_S5:
-        return "TPM_RC_REFERENCE_S5";
-    case TPM_RC_REFERENCE_S6:
-        return "TPM_RC_REFERENCE_S6";
-    case TPM_RC_NV_RATE:
-        return "TPM_RC_NV_RATE";
-    case TPM_RC_LOCKOUT:
-        return "TPM_RC_LOCKOUT";
-    case TPM_RC_RETRY:
-        return "TPM_RC_RETRY";
-    case TPM_RC_NV_UNAVAILABLE:
-        return "TPM_RC_NV_UNAVAILABLE";
-    case TPM_RC_NOT_USED:
-        return "TPM_RC_NOT_USED";
-
-        //
-        // TSS general
-        //
-    case TSS_E_INVALID_PARAM:
-        return "TSS_E_INVALID_PARAM";
-    case TSS_E_SOCK_INIT:
-        return "TSS_E_SOCK_INIT";
-    case TSS_E_SOCK_SHUTDOWN:
-        return "TSS_E_SOCK_SHUTDOWN";
-    case TSS_E_TPM_CONNECT:
-        return "TSS_E_TPM_CONNECT";
-    case TSS_E_TPM_SIM_INCOMPAT_VER:
-        return "TSS_E_TPM_SIM_INCOMPAT_VER";
-    case TSS_E_TPM_SIM_STARTUP:
-        return "TSS_E_TPM_SIM_STARTUP";
-
-        //
-        // TSS communication with TPM
-        //
-    case TSS_E_COMM:
-        return "TSS_E_COMM";
-    case TSS_E_TPM_TRANSACTION:
-        return "TSS_E_TPM_TRANSACTION";
-    case TSS_E_TPM_SIM_BAD_ACK:
-        return "TSS_E_TPM_SIM_BAD_ACK";
-    case TSS_E_BAD_RESPONSE:
-        return "TSS_E_BAD_RESPONSE";
-    case TSS_E_BAD_RESPONSE_LEN:
-        return "TSS_E_BAD_RESPONSE_LEN";
-    }
-
-    snprintf(unkCode, sizeof(unkCode), "0x%08X", rc);
-    return unkCode;
-} // TSS_StatusValueName()
-
-void TSS_PrintError(const char* msg, UINT32 errCode, ...)
-{
-    (void)msg;
-    va_list msgArgs;
-
-    va_start(msgArgs, errCode);
-    //PrintErrorV(msg, errCode, TSS_GetStatusMessage, msgArgs);
-    va_end(msgArgs);
 }
 
 TPM_RC
@@ -497,7 +239,7 @@ TPM_RC Initialize_TPM_Codec(TSS_DEVICE* tpm)
             result = TPM2_Startup(tpm, TPM_SU_CLEAR);
             if (result != TPM_RC_SUCCESS && result != TPM_RC_INITIALIZE)
             {
-                LogError("calling tpm startup");
+                LogError("calling TPM2_Startup %s", TSS_StatusValueName(result) );
                 tpm_comm_destroy(tpm->tpm_comm_handle);
             }
             else
@@ -528,14 +270,7 @@ void Deinit_TPM_Codec(TSS_DEVICE* tpm)
 //
 // NOTE: For now only HMAC signing is supported.
 //
-UINT32 SignData(
-    TSS_DEVICE  *tpm,               // IN / OUT
-    TSS_SESSION *sess,
-    BYTE        *tokenData,         // IN   Data to size
-    UINT32       tokenSize,         // IN   The size of data to sign in bytes
-    BYTE        *signatureBuffer,   // OUT  Buffer to store the signature
-    UINT32       sigBufSize         // IN   Capacity of signatureBuffer (bytes)
-)
+UINT32 SignData(TSS_DEVICE* tpm, TSS_SESSION* sess, BYTE* tokenData, UINT32 tokenSize, BYTE* signatureBuffer, UINT32 sigBufSize)
 {
     UINT32 result;
     TPM_RC          rc;
@@ -560,31 +295,66 @@ UINT32 SignData(
             UINT32          bytesLeft = tokenSize;
 
             rc = TPM2_HMAC_Start(tpm, sess, DRS_ID_KEY_HANDLE, NULL, idKeyHashAlg, &hSeq);
-            CHECK_CMD_RESULT(rc, "Failed to start HMAC sequence");
+            if (rc != TPM_RC_SUCCESS)
+            {
+                LogError("Failed to start HMAC sequence %s", TSS_StatusValueName(rc) );
+                result = 0;
+            }
+            else
+            {
+                bool seq_complete = true;
+                // Above condition 'if (tokenSize > MaxInputBuffer)' ensures that the first
+                // iteration is always valid.
+                do
+                {
+                    rc = TSS_SequenceUpdate(tpm, sess, hSeq, curPos, MaxInputBuffer);
+                    if (rc != TPM_RC_SUCCESS)
+                    {
+                        LogError("Failed to update HMAC sequence %s", TSS_StatusValueName(rc));
+                        seq_complete = false;
+                        break;
+                    }
 
-            // Above condition 'if (tokenSize > MaxInputBuffer)' ensures that the first
-            // iteration is always valid.
-            do {
-                rc = TSS_SequenceUpdate(tpm, sess, hSeq, curPos, MaxInputBuffer);
-                CHECK_CMD_RESULT(rc, "Failed to update HMAC sequence");
+                    bytesLeft -= MaxInputBuffer;
+                    curPos += MaxInputBuffer;
+                } while (bytesLeft > MaxInputBuffer);
 
-                bytesLeft -= MaxInputBuffer;
-                curPos += MaxInputBuffer;
-            } while (bytesLeft > MaxInputBuffer);
-
-            rc = TSS_SequenceComplete(tpm, sess, hSeq, curPos, bytesLeft, &digest);
-            CHECK_CMD_RESULT(rc, "Failed to complete HMAC sequence");
+                if (seq_complete)
+                {
+                    rc = TSS_SequenceComplete(tpm, sess, hSeq, curPos, bytesLeft, &digest);
+                    if (rc != TPM_RC_SUCCESS)
+                    {
+                        LogError("Failed to complete HMAC sequence %s", TSS_StatusValueName(rc));
+                        result = 0;
+                    }
+                    else
+                    {
+                        MemoryCopy(signatureBuffer, digest.t.buffer, sigSize);
+                        sigBufSize = sigSize;
+                        result = sigBufSize;
+                    }
+                }
+                else
+                {
+                    result = 0;
+                }
+            }
         }
         else
         {
             rc = TSS_HMAC(tpm, sess, DRS_ID_KEY_HANDLE, tokenData, tokenSize, &digest);
-            CHECK_CMD_RESULT(rc, "Hashing token data failed");
+            if (rc != TPM_RC_SUCCESS)
+            {
+                LogError("Hashing token data failed %s", TSS_StatusValueName(rc));
+                result = 0;
+            }
+            else
+            {
+                MemoryCopy(signatureBuffer, digest.t.buffer, sigSize);
+                sigBufSize = sigSize;
+                result = sigBufSize;
+            }
         }
-
-        MemoryCopy(signatureBuffer, digest.t.buffer, sigSize);
-        sigBufSize = sigSize;
-    end:
-        result = sigBufSize;
     }
     return result;
 }
@@ -803,14 +573,12 @@ TSS_StartAuthSession(
 // TSS extensions of the TPM 2.0 command interafce
 //
 
-TPM_RC TSS_CreatePwAuthSession(
-    TPM2B_AUTH      *authValue,     // IN
-    TSS_SESSION     *session        // OUT
-)
+TPM_RC TSS_CreatePwAuthSession(TPM2B_AUTH* authValue, TSS_SESSION* session)
 {
     TPM_RC result;
     if (authValue == NULL || session == NULL)
     {
+        LogError("Invalid parameter specified authValue: %p, session: %p", authValue, session);
         result = TPM_RC_FAILURE;
     }
     else
@@ -1297,6 +1065,7 @@ TSS_DispatchCmd(
                             //pAssert(cmdCtx->RetHandle != 0 && cmdCtx->RetHandle != TPM_RH_UNASSIGNED);
                             if (cmdCtx->RetHandle == 0 || cmdCtx->RetHandle == TPM_RH_UNASSIGNED)
                             {
+                                LogError("unable to unmarshal return handle.");
                                 result = TPM_RC_COMMAND_CODE;
                             }
                         }
@@ -1332,11 +1101,13 @@ TSS_SendCommand(
     TSS_STATUS result;
     if (tpm == NULL || cmdBuffer == NULL)
     {
+        LogError("Invalid tpm_comm_handle specified.");
         result = TSS_E_INVALID_PARAM;
     }
     else if (tpm->tpm_comm_handle == NULL)
     {
-        result = TSS_E_NOT_IMPL;
+        LogError("Invalid tpm_comm_handle specified.");
+        result = TSS_E_INVALID_PARAM;
     }
     else
     {
@@ -1463,47 +1234,295 @@ TSS_BuildCommand(
     return cmdSize;
 } // TSS_BuildCommand()
 
-  // Misc TSS helpers
-  // Returns mesages corresponding to TSS_STATUS codes
-static const char* TSS_GetStatusMessage(UINT32 status)
+// Misc TSS helpers
+// Returns names of TPM_RC and TSS_STATUS codes
+static const char* TSS_StatusValueName(UINT32 rc)
+{
+    static char unkCode[32];
+
+    switch (rc)
+    {
+    case TPM_RC_SUCCESS:
+        return "TPM_RC_SUCCESS";
+    case TPM_RC_BAD_TAG:
+        return "TPM_RC_BAD_TAG";
+        //
+        // VER1:
+        //
+    case TPM_RC_INITIALIZE:
+        return "TPM_RC_INITIALIZE";
+    case TPM_RC_FAILURE:
+        return "TPM_RC_FAILURE";
+    case TPM_RC_SEQUENCE:
+        return "TPM_RC_SEQUENCE";
+    case TPM_RC_PRIVATE:
+        return "TPM_RC_PRIVATE";
+    case TPM_RC_HMAC:
+        return "TPM_RC_HMAC";
+    case TPM_RC_DISABLED:
+        return "TPM_RC_DISABLED";
+    case TPM_RC_EXCLUSIVE:
+        return "TPM_RC_EXCLUSIVE";
+    case TPM_RC_AUTH_TYPE:
+        return "TPM_RC_AUTH_TYPE";
+    case TPM_RC_AUTH_MISSING:
+        return "TPM_RC_AUTH_MISSING";
+    case TPM_RC_POLICY:
+        return "TPM_RC_POLICY";
+    case TPM_RC_PCR:
+        return "TPM_RC_PCR";
+    case TPM_RC_PCR_CHANGED:
+        return "TPM_RC_PCR_CHANGED";
+    case TPM_RC_UPGRADE:
+        return "TPM_RC_UPGRADE";
+    case TPM_RC_TOO_MANY_CONTEXTS:
+        return "TPM_RC_TOO_MANY_CONTEXTS";
+    case TPM_RC_AUTH_UNAVAILABLE:
+        return "TPM_RC_AUTH_UNAVAILABLE";
+    case TPM_RC_REBOOT:
+        return "TPM_RC_REBOOT";
+    case TPM_RC_UNBALANCED:
+        return "TPM_RC_UNBALANCED";
+    case TPM_RC_COMMAND_SIZE:
+        return "TPM_RC_COMMAND_SIZE";
+    case TPM_RC_COMMAND_CODE:
+        return "TPM_RC_COMMAND_CODE";
+    case TPM_RC_AUTHSIZE:
+        return "TPM_RC_AUTHSIZE";
+    case TPM_RC_AUTH_CONTEXT:
+        return "TPM_RC_AUTH_CONTEXT";
+    case TPM_RC_NV_RANGE:
+        return "TPM_RC_NV_RANGE";
+    case TPM_RC_NV_SIZE:
+        return "TPM_RC_NV_SIZE";
+    case TPM_RC_NV_LOCKED:
+        return "TPM_RC_NV_LOCKED";
+    case TPM_RC_NV_AUTHORIZATION:
+        return "TPM_RC_NV_AUTHORIZATION";
+    case TPM_RC_NV_UNINITIALIZED:
+        return "TPM_RC_NV_UNINITIALIZED";
+    case TPM_RC_NV_SPACE:
+        return "TPM_RC_NV_SPACE";
+    case TPM_RC_NV_DEFINED:
+        return "TPM_RC_NV_DEFINED";
+    case TPM_RC_BAD_CONTEXT:
+        return "TPM_RC_BAD_CONTEXT";
+    case TPM_RC_CPHASH:
+        return "TPM_RC_CPHASH";
+    case TPM_RC_PARENT:
+        return "TPM_RC_PARENT";
+    case TPM_RC_NEEDS_TEST:
+        return "TPM_RC_NEEDS_TEST";
+    case TPM_RC_NO_RESULT:
+        return "TPM_RC_NO_RESULT";
+    case TPM_RC_SENSITIVE:
+        return "TPM_RC_SENSITIVE";
+    case RC_MAX_FM0:
+        return "RC_MAX_FM0";
+        //
+        // FMT1
+        //
+    case TPM_RC_ASYMMETRIC:
+        return "TPM_RC_ASYMMETRIC";
+    case TPM_RC_ATTRIBUTES:
+        return "TPM_RC_ATTRIBUTES";
+    case TPM_RC_HASH:
+        return "TPM_RC_HASH";
+    case TPM_RC_VALUE:
+        return "TPM_RC_VALUE";
+    case TPM_RC_HIERARCHY:
+        return "TPM_RC_HIERARCHY";
+    case TPM_RC_KEY_SIZE:
+        return "TPM_RC_KEY_SIZE";
+    case TPM_RC_MGF:
+        return "TPM_RC_MGF";
+    case TPM_RC_MODE:
+        return "TPM_RC_MODE";
+    case TPM_RC_TYPE:
+        return "TPM_RC_TYPE";
+    case TPM_RC_HANDLE:
+        return "TPM_RC_HANDLE";
+    case TPM_RC_KDF:
+        return "TPM_RC_KDF";
+    case TPM_RC_RANGE:
+        return "TPM_RC_RANGE";
+    case TPM_RC_AUTH_FAIL:
+        return "TPM_RC_AUTH_FAIL";
+    case TPM_RC_NONCE:
+        return "TPM_RC_NONCE";
+    case TPM_RC_PP:
+        return "TPM_RC_PP";
+    case TPM_RC_SCHEME:
+        return "TPM_RC_SCHEME";
+    case TPM_RC_SIZE:
+        return "TPM_RC_SIZE";
+    case TPM_RC_SYMMETRIC:
+        return "TPM_RC_SYMMETRIC";
+    case TPM_RC_TAG:
+        return "TPM_RC_TAG";
+    case TPM_RC_SELECTOR:
+        return "TPM_RC_SELECTOR";
+    case TPM_RC_INSUFFICIENT:
+        return "TPM_RC_INSUFFICIENT";
+    case TPM_RC_SIGNATURE:
+        return "TPM_RC_SIGNATURE";
+    case TPM_RC_KEY:
+        return "TPM_RC_KEY";
+    case TPM_RC_POLICY_FAIL:
+        return "TPM_RC_POLICY_FAIL";
+    case TPM_RC_INTEGRITY:
+        return "TPM_RC_INTEGRITY";
+    case TPM_RC_TICKET:
+        return "TPM_RC_TICKET";
+    case TPM_RC_RESERVED_BITS:
+        return "TPM_RC_RESERVED_BITS";
+    case TPM_RC_BAD_AUTH:
+        return "TPM_RC_BAD_AUTH";
+    case TPM_RC_EXPIRED:
+        return "TPM_RC_EXPIRED";
+    case TPM_RC_POLICY_CC:
+        return "TPM_RC_POLICY_CC";
+    case TPM_RC_BINDING:
+        return "TPM_RC_BINDING";
+    case TPM_RC_CURVE:
+        return "TPM_RC_CURVE";
+    case TPM_RC_ECC_POINT:
+        return "TPM_RC_ECC_POINT";
+        //
+        // WARN
+        //
+    case TPM_RC_CONTEXT_GAP:
+        return "TPM_RC_CONTEXT_GAP";
+    case TPM_RC_OBJECT_MEMORY:
+        return "TPM_RC_OBJECT_MEMORY";
+    case TPM_RC_SESSION_MEMORY:
+        return "TPM_RC_SESSION_MEMORY";
+    case TPM_RC_MEMORY:
+        return "TPM_RC_MEMORY";
+    case TPM_RC_SESSION_HANDLES:
+        return "TPM_RC_SESSION_HANDLES";
+    case TPM_RC_OBJECT_HANDLES:
+        return "TPM_RC_OBJECT_HANDLES";
+    case TPM_RC_LOCALITY:
+        return "TPM_RC_LOCALITY";
+    case TPM_RC_YIELDED:
+        return "TPM_RC_YIELDED";
+    case TPM_RC_CANCELED:
+        return "TPM_RC_CANCELED";
+    case TPM_RC_TESTING:
+        return "TPM_RC_TESTING";
+    case TPM_RC_REFERENCE_H0:
+        return "TPM_RC_REFERENCE_H0";
+    case TPM_RC_REFERENCE_H1:
+        return "TPM_RC_REFERENCE_H1";
+    case TPM_RC_REFERENCE_H2:
+        return "TPM_RC_REFERENCE_H2";
+    case TPM_RC_REFERENCE_H3:
+        return "TPM_RC_REFERENCE_H3";
+    case TPM_RC_REFERENCE_H4:
+        return "TPM_RC_REFERENCE_H4";
+    case TPM_RC_REFERENCE_H5:
+        return "TPM_RC_REFERENCE_H5";
+    case TPM_RC_REFERENCE_H6:
+        return "TPM_RC_REFERENCE_H6";
+    case TPM_RC_REFERENCE_S0:
+        return "TPM_RC_REFERENCE_S0";
+    case TPM_RC_REFERENCE_S1:
+        return "TPM_RC_REFERENCE_S1";
+    case TPM_RC_REFERENCE_S2:
+        return "TPM_RC_REFERENCE_S2";
+    case TPM_RC_REFERENCE_S3:
+        return "TPM_RC_REFERENCE_S3";
+    case TPM_RC_REFERENCE_S4:
+        return "TPM_RC_REFERENCE_S4";
+    case TPM_RC_REFERENCE_S5:
+        return "TPM_RC_REFERENCE_S5";
+    case TPM_RC_REFERENCE_S6:
+        return "TPM_RC_REFERENCE_S6";
+    case TPM_RC_NV_RATE:
+        return "TPM_RC_NV_RATE";
+    case TPM_RC_LOCKOUT:
+        return "TPM_RC_LOCKOUT";
+    case TPM_RC_RETRY:
+        return "TPM_RC_RETRY";
+    case TPM_RC_NV_UNAVAILABLE:
+        return "TPM_RC_NV_UNAVAILABLE";
+    case TPM_RC_NOT_USED:
+        return "TPM_RC_NOT_USED";
+
+        //
+        // TSS general
+        //
+    case TSS_E_INVALID_PARAM:
+        return "TSS_E_INVALID_PARAM";
+    case TSS_E_SOCK_INIT:
+        return "TSS_E_SOCK_INIT";
+    case TSS_E_SOCK_SHUTDOWN:
+        return "TSS_E_SOCK_SHUTDOWN";
+    case TSS_E_TPM_CONNECT:
+        return "TSS_E_TPM_CONNECT";
+    case TSS_E_TPM_SIM_INCOMPAT_VER:
+        return "TSS_E_TPM_SIM_INCOMPAT_VER";
+    case TSS_E_TPM_SIM_STARTUP:
+        return "TSS_E_TPM_SIM_STARTUP";
+
+        //
+        // TSS communication with TPM
+        //
+    case TSS_E_COMM:
+        return "TSS_E_COMM";
+    case TSS_E_TPM_TRANSACTION:
+        return "TSS_E_TPM_TRANSACTION";
+    case TSS_E_TPM_SIM_BAD_ACK:
+        return "TSS_E_TPM_SIM_BAD_ACK";
+    case TSS_E_BAD_RESPONSE:
+        return "TSS_E_BAD_RESPONSE";
+    case TSS_E_BAD_RESPONSE_LEN:
+        return "TSS_E_BAD_RESPONSE_LEN";
+    }
+
+    snprintf(unkCode, sizeof(unkCode), "0x%08X", rc);
+    return unkCode;
+} // TSS_StatusValueName()
+
+// Returns mesages corresponding to TSS_STATUS codes
+static const char* TSS_GetStatusMessage(TSS_STATUS status)
 {
     switch (status)
     {
-        case TSS_SUCCESS:
-            return "TSS operation completed successfully";
-        case TSS_E_INVALID_PARAM:
-            return "Invalid parameter";
-        case TSS_E_SOCK_INIT:
-            return "Failed to initialize Socket subsystem";
-        case TSS_E_SOCK_SHUTDOWN:
-            return "Failed to shut down Socket subsystem";
-        case TSS_E_TPM_CONNECT:
-            return "Failed to establish TPM connection";
-        case TSS_E_TPM_SIM_INCOMPAT_VER:
-            return "Incompatible TPM Simulator version";
-        case TSS_E_TPM_SIM_STARTUP:
-            return "Unexpected TPM2_Startup() failure";
+    case TSS_SUCCESS:
+        return "TSS operation completed successfully";
+    case TSS_E_INVALID_PARAM:
+        return "Invalid parameter";
+    case TSS_E_SOCK_INIT:
+        return "Failed to initialize Socket subsystem";
+    case TSS_E_SOCK_SHUTDOWN:
+        return "Failed to shut down Socket subsystem";
+    case TSS_E_TPM_CONNECT:
+        return "Failed to establish TPM connection";
+    case TSS_E_TPM_SIM_INCOMPAT_VER:
+        return "Incompatible TPM Simulator version";
+    case TSS_E_TPM_SIM_STARTUP:
+        return "Unexpected TPM2_Startup() failure";
 
-            // TSS communication with TPM
+        // TSS communication with TPM
 
-        case TSS_E_COMM:
-            return "General TPM communication channel failure";
-        case TSS_E_TPM_TRANSACTION:
-            return "TPM transaction failed";
-        case TSS_E_TPM_SIM_BAD_ACK:
-            return "Bad ACK tag in TPM Simulator transaction";
-        case TSS_E_BAD_RESPONSE:
-            return "Invalid TPM response buffer";
-        case TSS_E_BAD_RESPONSE_LEN:
-            return "Bad length field in TPM response buffer";
+    case TSS_E_COMM:
+        return "General TPM communication channel failure";
+    case TSS_E_TPM_TRANSACTION:
+        return "TPM transaction failed";
+    case TSS_E_TPM_SIM_BAD_ACK:
+        return "Bad ACK tag in TPM Simulator transaction";
+    case TSS_E_BAD_RESPONSE:
+        return "Invalid TPM response buffer";
+    case TSS_E_BAD_RESPONSE_LEN:
+        return "Bad length field in TPM response buffer";
+    default:
+        return TSS_StatusValueName(status);
     }
-    return TSS_StatusValueName(status);
 } // TSS_GetStatusMessage()
 
-UINT16
-TSS_GetDigestSize(
-    TPM_ALG_ID  hashAlg     // IN: hash algorithm to look up
-)
+UINT16 TSS_GetDigestSize(TPM_ALG_ID hashAlg)
 {
     switch (hashAlg)
     {

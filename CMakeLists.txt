@@ -8,6 +8,7 @@ project(utpm)
 option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
+option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 
 #Use solution folders.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -55,7 +56,6 @@ set(utpm_c_files
     #./src/TpmCommands.c
     #./src/TpmDevice.c
     ./src/tpm_codec.c
-    ./src/tpm_comm_emulator.c
 )
 
 set(utpm_h_files
@@ -77,9 +77,16 @@ set(utpm_h_files
 )
 
 if (${use_emulator})
+    add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
+
+    set(utpm_h_files
+        ${utpm_h_files}
+        ./inc/azure_utpm_c/tpm_socket_comm.h
+    )
     set(utpm_c_files
         ${utpm_c_files}
         ./src/tpm_comm_emulator.c
+        ./src/tpm_socket_comm.c
     )
 else()
     if (WIN32)
@@ -109,4 +116,8 @@ target_link_libraries(utpm aziotsharedutil)
 
 if (${run_unittests})
     add_subdirectory(tests)
+endif()
+
+if (NOT ${skip_samples})
+    add_subdirectory(samples)
 endif()

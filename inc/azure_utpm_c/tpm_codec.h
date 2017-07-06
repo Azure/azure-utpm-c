@@ -309,11 +309,6 @@ void TSS_RandomBytes(
     int      bufSize        // Number of random bytes to generate
 );
 
-//
-// Misc TSS helpers
-
-void TSS_PrintError(const char* msg, UINT32 errCode, ...);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
