@@ -48,8 +48,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "azure_c_shared_utility/xio.h"
-#include "azure_c_shared_utility/tickcounter.h"
+#include "azure_utpm_c/tpm_socket_comm.h"
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/tpm_comm.h"
@@ -61,11 +60,7 @@ MOCK_FUNCTION_WITH_CODE(WSAAPI, htonl_type, htonl, htonl_type, hostlong)
 #else
 MOCK_FUNCTION_WITH_CODE(, htonl_type, htonl, htonl_type, hostlong)
 #endif
-htonl_type tmp_rtn = g_htonl_value;
-if (hostlong == 0x11111111)
-{
-    g_htonl_value = 0;
-}
+htonl_type tmp_rtn = hostlong;
 MOCK_FUNCTION_END(tmp_rtn)
 
 #ifdef __cplusplus
@@ -101,77 +96,16 @@ static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
     ASSERT_FAIL(temp_str);
 }
 
-static TICK_COUNTER_HANDLE my_tickcounter_create(void)
+static TPM_SOCKET_HANDLE my_tpm_socket_create(const char* address, unsigned short port)
 {
-    return (TICK_COUNTER_HANDLE)my_gballoc_malloc(1);
+    (void)address;
+    (void)port;
+    return (TPM_SOCKET_HANDLE)my_gballoc_malloc(1);
 }
 
-static void my_tickcounter_destroy(TICK_COUNTER_HANDLE tick_counter)
+static void my_tpm_socket_destroy(TPM_SOCKET_HANDLE handle)
 {
-    my_gballoc_free(tick_counter);
-}
-
-static XIO_HANDLE my_xio_create(const IO_INTERFACE_DESCRIPTION* io_interface_description, const void* xio_create_parameters)
-{
-    (void)io_interface_description;
-    (void)xio_create_parameters;
-    return (XIO_HANDLE)my_gballoc_malloc(1);
-}
-
-static int my_xio_open(XIO_HANDLE xio,
-    ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context,
-    ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context,
-    ON_IO_ERROR on_io_error, void* on_io_error_context)
-{
-    (void)xio;
-    (void)on_io_error; (void)on_io_error_context;
-    g_on_bytes_received = on_bytes_received;
-    g_on_bytes_received_context = on_bytes_received_context;
-
-    on_io_open_complete(on_io_open_complete_context, IO_OPEN_OK);
-    return 0;
-}
-
-static int my_xio_send(XIO_HANDLE xio, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context)
-{
-    (void)xio; (void)buffer;
-    (void)size;
-
-    g_send_was_last_called = true;
-    g_on_send_complete = on_send_complete;
-    g_on_send_context = callback_context;
-    return 0;
-}
-
-static void my_xio_dowork(XIO_HANDLE xio)
-{
-    (void)xio;
-    if (!g_closing_xio)
-    {
-        if (g_send_was_last_called)
-        {
-            g_on_send_complete(g_on_send_context, IO_SEND_OK);
-            g_send_was_last_called = false;
-        }
-        else
-        {
-            g_on_bytes_received(g_on_bytes_received_context, RECV_DATA, RECV_DATA_LEN);
-        }
-    }
-}
-
-int my_xio_close(XIO_HANDLE xio, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* on_io_close_complete_context)
-{
-    (void)xio;
-    (void)on_io_close_complete;
-    (void)on_io_close_complete_context;
-    g_closing_xio = true;
-    return 0;
-}
-
-static void my_xio_destroy(XIO_HANDLE xio)
-{
-    my_gballoc_free(xio);
+    my_gballoc_free(handle);
 }
 
 static TEST_MUTEX_HANDLE g_testByTest;
@@ -194,16 +128,9 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         result = umocktypes_stdint_register_types();
         ASSERT_ARE_EQUAL(int, 0, result);
 
-        REGISTER_UMOCK_ALIAS_TYPE(HTTP_CLIENT_RESULT, int);
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(XIO_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_IO_OPEN_COMPLETE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_BYTES_RECEIVED, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_IO_ERROR, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(TICK_COUNTER_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_SEND_COMPLETE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ON_IO_CLOSE_COMPLETE, void*);
-        //REGISTER_UMOCK_ALIAS_TYPE(ON_IO_CLOSE_COMPLETE, void*);
+        REGISTER_UMOCK_ALIAS_TYPE(TPM_SOCKET_HANDLE, void*);
+        REGISTER_UMOCK_ALIAS_TYPE(htonl_type, unsigned short);
 
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
@@ -211,18 +138,14 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_realloc, NULL);
 
-        REGISTER_GLOBAL_MOCK_HOOK(tickcounter_create, my_tickcounter_create);
-        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tickcounter_create, NULL);
-        REGISTER_GLOBAL_MOCK_HOOK(tickcounter_destroy, my_tickcounter_destroy);
-
-        REGISTER_GLOBAL_MOCK_HOOK(xio_create, my_xio_create);
-        REGISTER_GLOBAL_MOCK_FAIL_RETURN(xio_create, NULL);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_destroy, my_xio_destroy);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_open, my_xio_open);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_close, my_xio_close);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_send, my_xio_send);
-        REGISTER_GLOBAL_MOCK_HOOK(xio_dowork, my_xio_dowork);
-    }
+        REGISTER_GLOBAL_MOCK_HOOK(tpm_socket_create, my_tpm_socket_create);
+        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_socket_create, NULL);
+        REGISTER_GLOBAL_MOCK_HOOK(tpm_socket_destroy, my_tpm_socket_destroy);
+        REGISTER_GLOBAL_MOCK_RETURN(tpm_socket_read, 0);
+        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_socket_read, __LINE__);
+        REGISTER_GLOBAL_MOCK_RETURN(tpm_socket_send, 0);
+        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_socket_send, __LINE__);
+}
 
     TEST_SUITE_CLEANUP(suite_cleanup)
     {
@@ -240,12 +163,6 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         }
         umock_c_reset_all_calls();
         g_htonl_value = 1;
-        g_on_send_complete = NULL;
-        g_on_send_context = NULL;
-        g_on_bytes_received = NULL;
-        g_on_bytes_received_context = NULL;
-        g_send_was_last_called = false;
-        g_closing_xio = false;
     }
 
     TEST_FUNCTION_CLEANUP(method_cleanup)
@@ -267,84 +184,67 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         return result;
     }
 
-    static void setup_wait_to_complete_mocks(bool call_on_recv)
+    static void setup_socket_send_mocks()
     {
-        tickcounter_ms_t init_tm = 1000;
-        tickcounter_ms_t current_tm = 1010;
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&init_tm, sizeof(tickcounter_ms_t));
-        STRICT_EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-        if (call_on_recv)
-        {
-            STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        }
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&current_tm, sizeof(tickcounter_ms_t));
-        if (call_on_recv)
-        {
-            STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-        }
+        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    }
+
+    static void setup_socket_read_mocks(htonl_type* htonl_reply)
+    {
+        STRICT_EXPECTED_CALL(tpm_socket_read(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+            .CopyOutArgumentBuffer_tpm_bytes(htonl_reply, sizeof(htonl_type));
+        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
+    }
+
+    static void setup_comm_create_mocks(void)
+    {
+        htonl_type client_ver = 1;
+        htonl_type unused = 0;
+
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        setup_socket_send_mocks();
+        setup_socket_send_mocks();
+
+        setup_socket_read_mocks(&client_ver);
+        setup_socket_read_mocks(&unused);
+        setup_socket_read_mocks(&unused);
+
+        // Power on simulator
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
+
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        setup_socket_read_mocks(&unused);
+
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+
+        setup_socket_read_mocks(&unused);
+        STRICT_EXPECTED_CALL(tpm_socket_destroy(IGNORED_PTR_ARG));
+    }
+
+    static void setup_tpm_comm_submit_command_mocks(void)
+    {
+        htonl_type resp_len = RECV_DATA_LEN;
+        htonl_type ack_cmd = 0;
+
+        setup_socket_send_mocks();
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        setup_socket_send_mocks();
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        setup_socket_read_mocks(&resp_len);
+        STRICT_EXPECTED_CALL(tpm_socket_read(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        setup_socket_read_mocks(&ack_cmd);
+
     }
 
     TEST_FUNCTION(tpm_comm_create_succeed)
     {
-        g_htonl_value = 1;
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(tickcounter_create());
-        STRICT_EXPECTED_CALL(socketio_get_interface_description());
-        STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(xio_open(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-
-        setup_wait_to_complete_mocks(false);
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-
-        setup_wait_to_complete_mocks(false);
-        setup_wait_to_complete_mocks(true);
-
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        setup_wait_to_complete_mocks(true);
-
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        setup_wait_to_complete_mocks(true);
-
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(socketio_get_interface_description());
-        STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(xio_open(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-
-        tickcounter_ms_t init_tm = 1000;
-        tickcounter_ms_t current_tm = 1010;
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&init_tm, sizeof(tickcounter_ms_t));
-        STRICT_EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&current_tm, sizeof(tickcounter_ms_t));
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-
-        STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        setup_wait_to_complete_mocks(false);
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&init_tm, sizeof(tickcounter_ms_t));
-        STRICT_EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&init_tm, sizeof(tickcounter_ms_t));
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-
-        STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        setup_wait_to_complete_mocks(false);
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&init_tm, sizeof(tickcounter_ms_t));
-        STRICT_EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG)).CopyOutArgumentBuffer_current_ms(&init_tm, sizeof(tickcounter_ms_t));
-
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(xio_close(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(xio_dowork(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(xio_destroy(IGNORED_PTR_ARG));
+        setup_comm_create_mocks();
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
@@ -357,15 +257,52 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         tpm_comm_destroy(tpm_handle);
     }
 
+    TEST_FUNCTION(tpm_comm_create_fail)
+    {
+        int negativeTestsInitResult = umock_c_negative_tests_init();
+        ASSERT_ARE_EQUAL(int, 0, negativeTestsInitResult);
+
+        //arrange
+        setup_comm_create_mocks();
+
+        umock_c_negative_tests_snapshot();
+
+        size_t calls_cannot_fail[] = { 2, 4, 7, 9, 11, 13, 14, 17, 20, 21 };
+
+        //act
+        size_t count = umock_c_negative_tests_call_count();
+        for (size_t index = 0; index < count; index++)
+        {
+            if (should_skip_index(index, calls_cannot_fail, sizeof(calls_cannot_fail) / sizeof(calls_cannot_fail[0])) != 0)
+            {
+                continue;
+            }
+
+            umock_c_negative_tests_reset();
+            umock_c_negative_tests_fail_call(index);
+
+            char tmp_msg[128];
+            sprintf(tmp_msg, "tpm_comm_create failure in test %zu/%zu", index, count);
+
+            TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+
+            //assert
+            ASSERT_IS_NULL_WITH_MSG(tpm_handle, tmp_msg);
+        }
+
+        //cleanup
+        umock_c_negative_tests_deinit();
+    }
+
     TEST_FUNCTION(tpm_comm_destroy_succeed)
     {
         //arrange
+        setup_comm_create_mocks();
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
         umock_c_reset_all_calls();
 
-        STRICT_EXPECTED_CALL(tickcounter_destroy(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(xio_close(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(xio_destroy(IGNORED_PTR_ARG));
+        setup_socket_send_mocks();
+        STRICT_EXPECTED_CALL(tpm_socket_destroy(IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
         //act
@@ -403,5 +340,80 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
         //cleanup
     }
+
+    TEST_FUNCTION(tpm_comm_submit_command_succeed)
+    {
+        int result;
+
+        TPM_COMM_HANDLE tpm_handle;
+        unsigned char response[RECV_DATA_LEN];
+        uint32_t length = RECV_DATA_LEN;
+
+        //arrange
+        setup_comm_create_mocks();
+        tpm_handle = tpm_comm_create();
+        umock_c_reset_all_calls();
+
+        setup_tpm_comm_submit_command_mocks();
+
+        //act
+        result = tpm_comm_submit_command(tpm_handle, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, &length);
+
+        //assert
+        ASSERT_ARE_EQUAL(int, 0, result);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+    }
+
+    TEST_FUNCTION(tpm_comm_submit_command_fail)
+    {
+        int result;
+
+        TPM_COMM_HANDLE tpm_handle;
+        unsigned char response[RECV_DATA_LEN];
+        uint32_t length = RECV_DATA_LEN;
+
+        int negativeTestsInitResult = umock_c_negative_tests_init();
+        ASSERT_ARE_EQUAL(int, 0, negativeTestsInitResult);
+
+        //arrange
+        setup_comm_create_mocks();
+        tpm_handle = tpm_comm_create();
+        umock_c_reset_all_calls();
+
+        setup_tpm_comm_submit_command_mocks();
+
+        umock_c_negative_tests_snapshot();
+
+        size_t calls_cannot_fail[] = { 0, 3, 7, 10 };
+
+        //act
+        size_t count = umock_c_negative_tests_call_count();
+        for (size_t index = 0; index < count; index++)
+        {
+            if (should_skip_index(index, calls_cannot_fail, sizeof(calls_cannot_fail) / sizeof(calls_cannot_fail[0])) != 0)
+            {
+                continue;
+            }
+
+            umock_c_negative_tests_reset();
+            umock_c_negative_tests_fail_call(index);
+
+            char tmp_msg[128];
+            sprintf(tmp_msg, "tpm_comm_submit_command failure in test %zu/%zu", index, count);
+
+            result = tpm_comm_submit_command(tpm_handle, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, &length);
+
+            //assert
+            ASSERT_ARE_NOT_EQUAL_WITH_MSG(int, 0, result, tmp_msg);
+        }
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+        umock_c_negative_tests_deinit();
+    }
+
 
 END_TEST_SUITE(tpm_comm_emulator_ut)

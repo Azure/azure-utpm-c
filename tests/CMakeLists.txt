@@ -3,6 +3,12 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
-#add_subdirectory(tpm_comm_emulator_ut)
+
+if (WIN32)
+    add_subdirectory(tpm_comm_emulator_ut)
+else()
+    #add_subdirectory(tpm_comm_linux_ut)
+endif()
+
 add_subdirectory(tpm_codec_ut)
 add_subdirectory(tpm_memory_ut)
