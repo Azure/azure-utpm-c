@@ -54,6 +54,9 @@ extern "C"
 }
 #endif
 
+#define TEST_COMM_HANDLE        (TPM_COMM_HANDLE)0x123456
+
+
 DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 static TPM_COMM_HANDLE my_tpm_comm_create(void)
@@ -500,11 +503,13 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(TPM2_ReadPublic_succeed)
     {
         //arrange
-        TSS_DEVICE tss_dev;
+        TSS_DEVICE tss_dev = { 0 };
         TPM_HANDLE request_handle = HR_PERSISTENT;
         TPM2B_PUBLIC tpm_public;
         TPM2B_NAME tpm_name;
         TPM2B_NAME qualified_name;
+
+        tss_dev.tpm_comm_handle = TEST_COMM_HANDLE;
 
         STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
