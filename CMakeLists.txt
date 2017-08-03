@@ -115,6 +115,13 @@ ENDIF(WIN32)
 add_library(utpm ${utpm_c_files} ${utpm_h_files})
 target_link_libraries(utpm aziotsharedutil)
 
+if (${use_emulator})
+else()
+    if (WIN32)
+        target_link_libraries(utpm tbs)
+    endif()
+endif()
+
 if (${run_unittests})
     add_subdirectory(tests)
 endif()

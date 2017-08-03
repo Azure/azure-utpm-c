@@ -16,7 +16,7 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 
-#include "azure_hub_modules/tpm_comm.h"
+#include "azure_utpm_c/tpm_comm.h"
 
 static const char* TPM_DEVICE_NAME = "/dev/tpm0";
 

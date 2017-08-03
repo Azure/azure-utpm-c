@@ -9,12 +9,11 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/buffer_.h"
 
-#include "azure_hub_modules/tpm_comm.h"
+#include "azure_utpm_c/tpm_comm.h"
 #include <Tbs.h>
 
 typedef struct TPM_COMM_INFO_TAG
 {
-    uint32_t timeout_value;
     TBS_HCONTEXT tbs_context;
 } TPM_COMM_INFO;
 
