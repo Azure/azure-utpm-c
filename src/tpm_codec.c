@@ -206,6 +206,31 @@ static bool IsCommMediumError(UINT32 code)
     return (code & 0xFFFF0000) == 0x80280000;
 }
 
+/*static void ClearPersistentPrimary(TSS_DEVICE *tpm, TPM_HANDLE hPers, const char* PrimaryRole)
+{
+    bool            res = false;
+    TPM_RC          rc;
+    TPM2B_PUBLIC    pub;
+    TPM2B_NAME      name, qName;
+
+    rc = TPM2_ReadPublic(tpm, hPers, &pub, &name, &qName);
+    if (rc == TPM_RC_SUCCESS)
+    {
+        rc = TPM2_EvictControl(tpm, &NullPwSession, TPM_RH_OWNER, hPers, hPers);
+        CHECK_CMD_RESULT1(rc, "TPM2_EvictControl for %s failed", PrimaryRole);
+
+        Print("Successfully deleted persistent %s 0x%08X\r\n", PrimaryRole, hPers);
+    }
+    else if (rc == TPM_RC_HANDLE)
+    {
+        Print("%s 0x%08X does not exist\r\n", PrimaryRole, hPers);
+    }
+    else
+        TSS_PrintError("Unexpected failure of TPM2_ReadPublic for %s 0x%08X", rc, PrimaryRole, hPers);
+
+end:
+}*/
+
 static TPM_RC CleanResponseCode(TPM_RC rawResponse)
 {
     if (IsCommMediumError(rawResponse))
@@ -251,6 +276,10 @@ TPM_RC Initialize_TPM_Codec(TSS_DEVICE* tpm)
         {
             result = TPM_RC_SUCCESS;
         }
+        // Clear out from previous runs
+        (void)TPM2_FlushContext(tpm, HR_POLICY_SESSION);
+        (void)TPM2_FlushContext(tpm, HR_POLICY_SESSION | 1);
+        (void)TPM2_FlushContext(tpm, HR_POLICY_SESSION | 2);
     }
     return result;
 }
