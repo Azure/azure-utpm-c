@@ -70,47 +70,6 @@ typedef struct
     UINT32      RespParamSize;
 } TSS_CMD_CONTEXT;
 
-static void PrintErrorV(const char* msg, int errCode, ErrCodeMsgFnPtr getErrCodeMsg, va_list msgArgs)
-{
-    const char *separator = "";
-    BOOL newLine = FALSE;
-
-    if (msg && *msg)
-    {
-        int len = strlen(msg);
-
-        if (msg[len - 1] != '\n')
-        {
-            newLine = TRUE;
-            if (msg[len - 1] == '.' || msg[len - 1] == ':')
-            {
-                separator = " ";
-            }
-            else if (msg[len - 1] != ' ')
-            {
-                separator = ". ";
-            }
-        }
-        vfprintf(stderr, msg, msgArgs);
-    }
-    if (errCode != 0)
-    {
-        fprintf(stderr, "%sError: 0x%08X", separator, errCode);
-
-        if (getErrCodeMsg != NULL)
-        {
-            msg = getErrCodeMsg(errCode);
-            if (msg && msg[0])
-            {
-                fprintf(stderr, " (%s)", msg);
-            }
-        }
-        newLine = TRUE;
-    }
-    if (newLine)
-        fprintf(stderr, "\n");
-}
-
 TPM_RC
 TSS_DispatchCmd(
     TSS_DEVICE      *tpm,           // IN
