@@ -17,6 +17,56 @@ typedef struct TPM_COMM_INFO_TAG
     TBS_HCONTEXT tbs_context;
 } TPM_COMM_INFO;
 
+static const char* get_tbsi_error_msg(TBS_RESULT tbs_res)
+{
+    switch (tbs_res)
+    {
+        case TBS_SUCCESS: 
+            return "The function was successful";
+
+        case TBS_E_BAD_PARAMETER:
+            return "One or more parameter values are not valid.";
+
+        case TBS_E_INTERNAL_ERROR:
+            return "An internal software error occurred.";
+
+        case TBS_E_INVALID_CONTEXT_PARAM:
+            return "A context parameter that is not valid was passed when attempting to create a TBS context.";
+
+        case TBS_E_INVALID_CONTEXT:
+            return "The specified context handle does not refer to a valid context.";
+
+        case TBS_E_INVALID_OUTPUT_POINTER:
+            return "A specified output pointer is not valid.";
+
+        case TBS_E_BUFFER_TOO_LARGE:
+            return "The input or output buffer is too large.";
+
+        case TBS_E_SERVICE_DISABLED:
+            return "The TBS service has been disabled.";
+
+        case TBS_E_SERVICE_NOT_RUNNING:
+            return "The TBS service is not running and could not be started.";
+
+        case TBS_E_SERVICE_START_PENDING:
+            return "The TBS service has been started but is not yet running.";
+
+        case TBS_E_TOO_MANY_TBS_CONTEXTS:
+            return "A new context could not be created because there are too many open contexts.";
+
+        case TBS_E_INSUFFICIENT_BUFFER:
+            return "The specified output buffer is too small.";
+
+        case TBS_E_TPM_NOT_FOUND:
+            return "A compatible Trusted Platform Module (TPM) Security Device cannot be found on this computer.";
+
+        case TBS_E_IOERROR:
+            return "An error occurred while communicating with the TPM.";
+
+    }
+    return "Unknown tbsi error found";
+}
+
 TPM_COMM_HANDLE tpm_comm_create()
 {
     TPM_COMM_INFO* result;
@@ -36,7 +86,7 @@ TPM_COMM_HANDLE tpm_comm_create()
         tbs_res = Tbsi_Context_Create((PCTBS_CONTEXT_PARAMS)&parms, &result->tbs_context);
         if (tbs_res != TBS_SUCCESS)
         {
-            LogError("Failure: Tbsi_Context_Create %u.", tbs_res);
+            LogError("Failure: Tbsi_Context_Create %s.", get_tbsi_error_msg(tbs_res));
             free(result);
             result = NULL;
         }
@@ -45,7 +95,7 @@ TPM_COMM_HANDLE tpm_comm_create()
             tbs_res = Tbsi_GetDeviceInfo(sizeof(device_info), &device_info);
             if (tbs_res != TBS_SUCCESS)
             {
-                LogError("Failure getting device tpm information %u.", tbs_res);
+                LogError("Failure getting device tpm information %s.", get_tbsi_error_msg(tbs_res));
                 Tbsip_Context_Close(&result->tbs_context);
                 free(result);
                 result = NULL;
@@ -92,7 +142,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
             cmd_bytes, bytes_len, response, resp_len);
         if (tbs_res != TBS_SUCCESS)
         {
-            LogError("Failure sending command to tpm %d.", tbs_res);
+            LogError("Failure sending command to tpm %d.", get_tbsi_error_msg(tbs_res));
             result = __FAILURE__;
         }
         else
