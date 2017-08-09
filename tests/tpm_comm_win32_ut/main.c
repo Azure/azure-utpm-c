@@ -6,6 +6,6 @@
 int main(void)
 {
     size_t failedTestCount = 0;
-    RUN_TEST_SUITE(tpm_comm_linux_ut, failedTestCount);
+    RUN_TEST_SUITE(tpm_comm_win32_ut, failedTestCount);
     return failedTestCount;
 }

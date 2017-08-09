@@ -67,6 +67,15 @@ static const char* get_tbsi_error_msg(TBS_RESULT tbs_res)
     return "Unknown tbsi error found";
 }
 
+static void cleanup_memory(TPM_COMM_INFO* tpm_info)
+{
+    if (tpm_info->tbs_context != NULL)
+    {
+        (void)Tbsip_Context_Close(tpm_info->tbs_context);
+    }
+    free(tpm_info);
+}
+
 TPM_COMM_HANDLE tpm_comm_create()
 {
     TPM_COMM_INFO* result;
@@ -96,15 +105,13 @@ TPM_COMM_HANDLE tpm_comm_create()
             if (tbs_res != TBS_SUCCESS)
             {
                 LogError("Failure getting device tpm information %s.", get_tbsi_error_msg(tbs_res));
-                Tbsip_Context_Close(&result->tbs_context);
-                free(result);
+                cleanup_memory(result);
                 result = NULL;
             }
             else if (device_info.tpmVersion != TPM_VERSION_20)
             {
                 LogError("Failure Invalid tpm version specified.  Requires 2.0.");
-                Tbsip_Context_Close(&result->tbs_context);
-                free(result);
+                cleanup_memory(result);
                 result = NULL;
             }
         }
@@ -116,8 +123,7 @@ void tpm_comm_destroy(TPM_COMM_HANDLE handle)
 {
     if (handle)
     {
-        Tbsip_Context_Close(&handle->tbs_context);
-        free(handle);
+        cleanup_memory(handle);
     }
 }
 
