@@ -29,8 +29,7 @@ static TPMT_SYM_DEF_OBJECT NullSymDefObject = { TPM_ALG_NULL, 0, TPM_ALG_NULL };
 static TPMT_SIG_SCHEME     NullSigScheme = { TPM_ALG_NULL, { TPM_ALG_NULL } };
 static TPMT_TK_HASHCHECK   NullHashTk = { TPM_ST_HASHCHECK, TPM_RH_NULL, {0} };
 static const UINT32 TPM_20_EK_HANDLE = HR_PERSISTENT | 0x00010001;
-static const UINT32 DRS_ID_KEY_HANDLE = HR_PERSISTENT | 0x00000100;
-static TPM2B_PUBLIC    DrsIdKeyPub = { TPM_ALG_NULL };
+static const UINT32 DPS_ID_KEY_HANDLE = HR_PERSISTENT | 0x00000100;
 
 typedef const char* (*ErrCodeMsgFnPtr)(UINT32 msgID);
 
@@ -282,7 +281,7 @@ UINT32 SignData(TSS_DEVICE* tpm, TSS_SESSION* sess, BYTE* tokenData, UINT32 toke
             BYTE           *curPos = tokenData;
             UINT32          bytesLeft = tokenSize;
 
-            rc = TPM2_HMAC_Start(tpm, sess, DRS_ID_KEY_HANDLE, NULL, idKeyHashAlg, &hSeq);
+            rc = TPM2_HMAC_Start(tpm, sess, DPS_ID_KEY_HANDLE, NULL, idKeyHashAlg, &hSeq);
             if (rc != TPM_RC_SUCCESS)
             {
                 LogError("Failed to start HMAC sequence %s", TSS_StatusValueName(rc) );
@@ -330,7 +329,7 @@ UINT32 SignData(TSS_DEVICE* tpm, TSS_SESSION* sess, BYTE* tokenData, UINT32 toke
         }
         else
         {
-            rc = TSS_HMAC(tpm, sess, DRS_ID_KEY_HANDLE, tokenData, tokenSize, &digest);
+            rc = TSS_HMAC(tpm, sess, DPS_ID_KEY_HANDLE, tokenData, tokenSize, &digest);
             if (rc != TPM_RC_SUCCESS)
             {
                 LogError("Hashing token data failed %s", TSS_StatusValueName(rc));
