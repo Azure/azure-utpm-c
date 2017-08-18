@@ -32,7 +32,7 @@ static int write_data_to_tpm(TPM_COMM_INFO* tpm_info, const unsigned char* tpm_b
 {
     int result;
 
-    if ((result->tpm_device = open(TPM_DEVICE_NAME, O_RDWR)) < 0)
+    if ((tpm_info->tpm_device = open(TPM_DEVICE_NAME, O_RDWR)) < 0)
     {
         LogError("Failure: opening TPM device %d:%s.", errno, strerror(errno));
         result = __FAILURE__;
@@ -49,7 +49,7 @@ static int write_data_to_tpm(TPM_COMM_INFO* tpm_info, const unsigned char* tpm_b
         {
             result = 0;
         }
-        close(handle->tpm_device);
+        close(tpm_info->tpm_device);
     }
     return result;
 }
@@ -57,7 +57,7 @@ static int write_data_to_tpm(TPM_COMM_INFO* tpm_info, const unsigned char* tpm_b
 static int read_data_from_tpm(TPM_COMM_INFO* tpm_info, unsigned char* tpm_bytes, uint32_t* bytes_len)
 {
     int result;
-    if ((result->tpm_device = open(TPM_DEVICE_NAME, O_RDWR)) < 0)
+    if ((tpm_info->tpm_device = open(TPM_DEVICE_NAME, O_RDWR)) < 0)
     {
         LogError("Failure: opening TPM device %d:%s.", errno, strerror(errno));
         result = __FAILURE__;
@@ -75,7 +75,7 @@ static int read_data_from_tpm(TPM_COMM_INFO* tpm_info, unsigned char* tpm_bytes,
             *bytes_len = len_read;
             result = 0;
         }
-        close(handle->tpm_device);
+        close(tpm_info->tpm_device);
     }
     return result;
 }
