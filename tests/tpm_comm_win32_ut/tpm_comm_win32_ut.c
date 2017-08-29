@@ -197,6 +197,8 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
     {
         //arrange
         setup_comm_create_mocks();
+        STRICT_EXPECTED_CALL(Tbsip_Context_Close(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
         g_tpm_version = TPM_VERSION_12;
 
