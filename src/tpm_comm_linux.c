@@ -31,25 +31,15 @@ typedef struct TPM_COMM_INFO_TAG
 static int write_data_to_tpm(TPM_COMM_INFO* tpm_info, const unsigned char* tpm_bytes, uint32_t bytes_len)
 {
     int result;
-
-    if ((tpm_info->tpm_device = open(TPM_DEVICE_NAME, O_RDWR)) < 0)
+    int resp_len = write(tpm_info->tpm_device, tpm_bytes, bytes_len);
+    if (resp_len != bytes_len)
     {
-        LogError("Failure: opening TPM device %d:%s.", errno, strerror(errno));
+        LogError("Failure writing data to tpm: %d:%s.", errno, strerror(errno));
         result = __FAILURE__;
     }
     else
     {
-        int resp_len = write(tpm_info->tpm_device, tpm_bytes, bytes_len);
-        if (resp_len != bytes_len)
-        {
-            LogError("Failure writing data to tpm: %d:%s.", errno, strerror(errno));
-            result = __FAILURE__;
-        }
-        else
-        {
-            result = 0;
-        }
-        close(tpm_info->tpm_device);
+        result = 0;
     }
     return result;
 }
@@ -57,25 +47,16 @@ static int write_data_to_tpm(TPM_COMM_INFO* tpm_info, const unsigned char* tpm_b
 static int read_data_from_tpm(TPM_COMM_INFO* tpm_info, unsigned char* tpm_bytes, uint32_t* bytes_len)
 {
     int result;
-    if ((tpm_info->tpm_device = open(TPM_DEVICE_NAME, O_RDWR)) < 0)
+    int len_read = read(tpm_info->tpm_device, tpm_bytes, *bytes_len);
+    if (len_read < MIN_TPM_RESPONSE_LENGTH)
     {
-        LogError("Failure: opening TPM device %d:%s.", errno, strerror(errno));
+        LogError("Failure reading data from tpm: len: %d - %d:%s.", len_read, errno, strerror(errno));
         result = __FAILURE__;
     }
     else
     {
-        int len_read = read(tpm_info->tpm_device, tpm_bytes, *bytes_len);
-        if (len_read < MIN_TPM_RESPONSE_LENGTH)
-        {
-            LogError("Failure reading data from tpm: len: %d - %d:%s.", len_read, errno, strerror(errno));
-            result = __FAILURE__;
-        }
-        else
-        {
-            *bytes_len = len_read;
-            result = 0;
-        }
-        close(tpm_info->tpm_device);
+        *bytes_len = len_read;
+        result = 0;
     }
     return result;
 }
@@ -90,6 +71,12 @@ TPM_COMM_HANDLE tpm_comm_create()
     else
     {
         memset(result, 0, sizeof(TPM_COMM_INFO));
+        if ((result->tpm_device = open(TPM_DEVICE_NAME, O_RDWR)) < 0)
+        {
+            LogError("Failure: opening TPM device %d:%s.", errno, strerror(errno));
+            free(result);
+            result = NULL;
+        }        
     }
     return result;
 }
@@ -98,6 +85,10 @@ void tpm_comm_destroy(TPM_COMM_HANDLE handle)
 {
     if (handle)
     {
+        if (handle->tpm_device != 0)
+        {
+            close(handle->tpm_device);
+        }
         free(handle);
     }
 }
