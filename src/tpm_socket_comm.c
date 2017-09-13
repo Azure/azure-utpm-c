@@ -104,7 +104,7 @@ static int send_socket_bytes(TPM_SOCKET_INFO* socket_info, const unsigned char* 
     printf("\r\n");
 #endif
     int sent_bytes = 0;
-    int send_amt = byte_len;
+    int send_amt = (int)byte_len;
     const char* pIterator = (const char*)cmd_val;
     while (send_amt > 0)
     {

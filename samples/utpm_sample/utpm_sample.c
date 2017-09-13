@@ -178,7 +178,7 @@ static void write_sign_data(TPM_SAMPLE_INFO* tpm_info, const char* data)
     size_t data_len = strlen(data);
     unsigned char* data_copy = (unsigned char*)data;
     BYTE data_signature[1024];
-    uint32_t sign_len = SignData(&tpm_info->tpm_device, &NullPwSession, data_copy, data_len, data_signature, sizeof(data_signature));
+    uint32_t sign_len = SignData(&tpm_info->tpm_device, &NullPwSession, data_copy, (uint32_t)data_len, data_signature, (uint32_t)sizeof(data_signature));
     if (sign_len == 0)
     {
         printf("Failed to sign data with tpm\r\n");

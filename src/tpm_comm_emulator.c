@@ -78,14 +78,13 @@ static bool is_ack_ok(TPM_COMM_INFO* tpm_comm_info)
 
 static int send_sync_bytes(TPM_COMM_INFO* comm_info, const unsigned char* cmd_val, size_t byte_len)
 {
-    return tpm_socket_send(comm_info->socket_conn, cmd_val, byte_len);
+    return tpm_socket_send(comm_info->socket_conn, cmd_val, (uint32_t)byte_len);
 }
 
 static int send_sync_cmd(TPM_COMM_INFO* tpm_comm_info, uint32_t cmd_val)
 {
     uint32_t net_bytes = htonl(cmd_val);
-    int j = send_sync_bytes(tpm_comm_info, (const unsigned char*)&net_bytes, sizeof(uint32_t) );
-    return j;
+    return send_sync_bytes(tpm_comm_info, (const unsigned char*)&net_bytes, sizeof(uint32_t) );
 }
 
 static void close_simulator(TPM_COMM_INFO* tpm_comm_info)
