@@ -439,6 +439,9 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         TPMA_SESSION sess_attrib = { 1 };
         TSS_SESSION session;
 
+        (void)Initialize_TPM_Codec(&tss_dev);
+        umock_c_reset_all_calls();
+
         setup_tss_start_auth_session_mocks();
 
         //act
