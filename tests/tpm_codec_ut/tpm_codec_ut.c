@@ -486,8 +486,11 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(TSS_PolicySecret_succeed)
     {
         //arrange
-        TSS_DEVICE tss_dev;
-        TSS_SESSION session;
+        TSS_DEVICE tss_dev = { 0 };
+        TSS_SESSION session = { 0 };
+
+        (void)Initialize_TPM_Codec(&tss_dev);
+        umock_c_reset_all_calls();
 
         setup_tss_policy_secret_mocks();
 

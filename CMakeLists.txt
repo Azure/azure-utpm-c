@@ -5,6 +5,21 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(utpm)
 
+#making a global variable to know if we are on linux, windows, or macosx.
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(WINDOWS TRUE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(LINUX TRUE)
+    #on Linux, enable valgrind
+    #these commands (MEMORYCHECK...) need to apear BEFORE include(CTest) or they will not have any effect
+    find_program(MEMORYCHECK_COMMAND valgrind)
+    set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(MACOSX TRUE)
+endif()
+
+include (CTest)
+
 option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
@@ -43,6 +58,8 @@ endmacro(compileAsC11)
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 endif()
+
+enable_testing()
 
 compileAsC99()
 
