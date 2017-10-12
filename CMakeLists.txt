@@ -5,63 +5,13 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(utpm)
 
-#making a global variable to know if we are on linux, windows, or macosx.
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(WINDOWS TRUE)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(LINUX TRUE)
-    #on Linux, enable valgrind
-    #these commands (MEMORYCHECK...) need to apear BEFORE include(CTest) or they will not have any effect
-    find_program(MEMORYCHECK_COMMAND valgrind)
-    set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(MACOSX TRUE)
-endif()
-
-include (CTest)
+# Include the common build rules for the C SDK
+include(deps/c-utility/configs/azure_iot_build_rules.cmake)
 
 option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
-
-#Use solution folders.
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-macro(compileAsC99)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_C_FLAGS "--std=c99 ${CMAKE_C_FLAGS}")
-    if (NOT IN_OPENWRT)
-      set (CMAKE_CXX_FLAGS "--std=c++11 ${CMAKE_CXX_FLAGS}")
-    endif()
-    endif()
-  else()
-    set (CMAKE_C_STANDARD 99)
-    set (CMAKE_CXX_STANDARD 11)
-  endif()
-endmacro(compileAsC99)
-
-macro(compileAsC11)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_C_FLAGS "--std=c11 ${CMAKE_C_FLAGS}")
-      set (CMAKE_C_FLAGS "-D_POSIX_C_SOURCE=200112L ${CMAKE_C_FLAGS}")
-      set (CMAKE_CXX_FLAGS "--std=c++11 ${CMAKE_CXX_FLAGS}")
-    endif()
-  else()
-    set (CMAKE_C_STANDARD 11)
-    set (CMAKE_CXX_STANDARD 11)
-  endif()
-endmacro(compileAsC11)
-
-if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-endif()
-
-enable_testing()
-
-compileAsC99()
 
 set(TPM_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
 
