@@ -20,6 +20,11 @@ void TpmFail(
     int              code
     )
 {
+    (void)code;
+#ifndef NO_FAIL_TRACE
+    (void)function;
+    (void)line;
+#endif
     assert(code != code);
 }
 

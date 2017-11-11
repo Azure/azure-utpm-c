@@ -13,16 +13,33 @@ option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)"
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 
-set(TPM_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
+#do not add or build any tests of the dependencies
+set(original_run_e2e_tests ${run_e2e_tests})
+set(original_run_unittests ${run_unittests})
+
+set(run_e2e_tests OFF)
+set(run_unittests OFF)
 
 add_subdirectory(./deps/c-utility)
+
+if (${original_run_e2e_tests} OR ${original_run_unittests})
+    add_subdirectory(./deps/c-utility/testtools)
+endif()
+
+set(run_e2e_tests ${original_run_e2e_tests})
+set(run_unittests ${original_run_unittests})
+
+compileAsC99()
+
+enable_testing()
+
+set(TPM_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
+
 set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
 
 set(utpm_c_files
     ./src/Marshal.c
     ./src/Memory.c
-    #./src/TpmCommands.c
-    #./src/TpmDevice.c
     ./src/tpm_codec.c
 )
 

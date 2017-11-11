@@ -39,42 +39,11 @@ pushd %build-root%\cmake\%CMAKE_DIR%
 
 cmake %build-root% -Drun_unittests:BOOL=ON 
 
-:build-a-solution
-call :_run-msbuild "Build" %1 %2 %3
-goto :eof
-
-:run-unit-tests
-call :_run-tests %1 "UnitTests"
-goto :eof
-
-:_run-msbuild
-rem // optionally override configuration|platform
-setlocal EnableExtensions
-set build-target=utpm.sln
-
-echo %build-target%
-
-msbuild /m %build-target% "/p:Configuration=%build-config%;Platform=%build-platform%"
+msbuild /m utpm.sln "/p:Configuration=%build-config%;Platform=%build-platform%"
 if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 goto :eof
 
-:_run-tests
-rem // discover tests
-set test-dlls-list=
-set test-dlls-path=%build-root%\%~1\build\windows\%build-platform%\%build-config%
-for /f %%i in ('dir /b %test-dlls-path%\*%~2*.dll') do set test-dlls-list="%test-dlls-path%\%%i" !test-dlls-list!
-
-if "%test-dlls-list%" equ "" (
-    echo No unit tests found in %test-dlls-path%
-    exit /b 1
+if %build-platform% neq arm (
+    ctest -C "debug" -V
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
-
-rem // run tests
-echo Test DLLs: %test-dlls-list%
-echo.
-vstest.console.exe %test-dlls-list%
-
-if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
-goto :eof
-
-echo done
