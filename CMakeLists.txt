@@ -113,3 +113,60 @@ endif()
 if (NOT ${skip_samples})
     add_subdirectory(samples)
 endif()
+
+# Set CMAKE_INSTALL_LIBDIR if not defined
+include(GNUInstallDirs)
+
+if(${use_installed_dependencies})
+    # Install utpm
+    set(package_location "cmake")
+
+    if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+        set(CMAKE_INSTALL_LIBDIR "lib")
+    endif()
+
+    install(TARGETS utpm EXPORT utpmTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
+    )
+    install(FILES ${utpm_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_utpm_c)
+
+    include(CMakePackageConfigHelpers)
+
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+        VERSION ${UTPM_VERSION}
+        COMPATIBILITY SameMajorVersion
+    )
+
+    configure_file("configs/${PROJECT_NAME}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
+        COPYONLY
+    )
+
+    install(EXPORT utpmTargets
+        FILE
+            "${PROJECT_NAME}Targets.cmake"
+        DESTINATION
+            ${package_location}
+    )
+
+    install(
+        FILES
+            "configs/${PROJECT_NAME}Config.cmake"
+            "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION
+            ${package_location}
+    )
+else()
+    set(install_staticlibs
+        utpm
+    )
+    install(FILES ${utpm_h_files}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_utpm_c) 
+    install(TARGETS ${install_staticlibs} 
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
