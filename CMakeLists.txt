@@ -143,21 +143,8 @@ if(${use_installed_dependencies})
         COMPATIBILITY SameMajorVersion
     )
 
-    configure_file("configs/${PROJECT_NAME}Config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
-        COPYONLY
-    )
-
-    install(EXPORT utpmTargets
-        FILE
-            "${PROJECT_NAME}Targets.cmake"
-        DESTINATION
-            ${package_location}
-    )
-
     install(
         FILES
-            "configs/${PROJECT_NAME}Config.cmake"
             "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
         DESTINATION
             ${package_location}
