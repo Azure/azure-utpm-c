@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(utpm)
 
+set(UTPM_VERSION 1.0.1)
+
 # Include the common build rules for the C SDK
 include(deps/c-utility/configs/azure_iot_build_rules.cmake)
 
