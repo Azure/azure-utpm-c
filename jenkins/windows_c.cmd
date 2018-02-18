@@ -2,7 +2,7 @@
 @REM Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 @setlocal EnableExtensions EnableDelayedExpansion
-@echo off
+@echo OFF
 
 set current-path=%~dp0
 rem // remove trailing slash
@@ -38,12 +38,14 @@ rem no error checking
 pushd %build-root%\cmake\%CMAKE_DIR%
 
 cmake %build-root% -Drun_unittests:BOOL=ON 
+if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 
 msbuild /m utpm.sln "/p:Configuration=%build-config%;Platform=%build-platform%"
 if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
-goto :eof
 
 if %build-platform% neq arm (
     ctest -C "debug" -V
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
+
+popd

@@ -346,8 +346,35 @@ UINT32 SignData(TSS_DEVICE* tpm, TSS_SESSION* sess, BYTE* tokenData, UINT32 toke
     return result;
 }
 
-TPM_RC
-TSS_HMAC(
+TPM_RC TPM2_HMAC(
+    TSS_DEVICE             *tpm,                // IN/OUT
+    TSS_SESSION            *session,            // IN/OUT
+    TPMI_DH_OBJECT          handle,             // IN
+    TPM2B_MAX_BUFFER       *buffer,             // IN
+    TPMI_ALG_HASH           hashAlg,            // IN
+    TPM2B_DIGEST           *outHMAC             // OUT
+)
+{
+    TPM_RC result;
+    if (tpm == NULL || session == NULL || buffer == NULL || outHMAC == NULL)
+    {
+        LogError("Invalid parameter specified tpm: %p, session: %p, buffer: %p, outHMAC: %p", tpm, session, buffer, outHMAC);
+        result = TPM_RC_FAILURE;
+    }
+    else
+    {
+        result = TPM_RC_SUCCESS;
+        BEGIN_CMD();
+        TSS_MARSHAL_OPT2B(TPM2B_MAX_BUFFER, buffer);
+        TSS_MARSHAL(TPMI_ALG_HASH, &hashAlg);
+        DISPATCH_CMD(HMAC, &handle, 1, &session, 1);
+        TSS_UNMARSHAL(TPM2B_DIGEST, outHMAC);
+        END_CMD();
+    }
+    return result;
+}
+
+TPM_RC TSS_HMAC(
     TSS_DEVICE             *tpm,                // IN/OUT
     TSS_SESSION            *session,            // IN/OUT
     TPMI_DH_OBJECT          handle,             // IN
@@ -356,14 +383,25 @@ TSS_HMAC(
     TPM2B_DIGEST           *outHMAC             // OUT
 )
 {
-    TPM2B_MAX_BUFFER    dataBuf;
-    dataBuf.b.size = (UINT16)dataSize;
-
+    TPM_RC result;
     if (dataSize > MAX_DIGEST_BUFFER)
-        return TPM_RC_SIZE;
-    MemoryCopy(dataBuf.t.buffer, data, dataSize);
-
-    return TPM2_HMAC(tpm, session, handle, &dataBuf, TPM_ALG_NULL, outHMAC);
+    {
+        LogError("Invalid data size specified %u", dataSize);
+        result = TPM_RC_SIZE;
+    }
+    else if (tpm == NULL || session == NULL || data == NULL || outHMAC == NULL)
+    {
+        LogError("Invalid parameter specified tpm: %p, session: %p, data: %p, outHMAC: %p", tpm, session, data, outHMAC);
+        result = TPM_RC_FAILURE;
+    }
+    else
+    {
+        TPM2B_MAX_BUFFER    dataBuf;
+        dataBuf.b.size = (UINT16)dataSize;
+        MemoryCopy(dataBuf.t.buffer, data, dataSize);
+        result = TPM2_HMAC(tpm, session, handle, &dataBuf, TPM_ALG_NULL, outHMAC);
+    }
+    return result;
 }
 
 TPM_RC
@@ -404,9 +442,7 @@ TSS_PolicySecret(
     }
     else
     {
-        result = TPM2_PolicySecret(tpm, session,
-            authHandle, policySession->SessIn.sessionHandle,
-            nonceTPM, NULL, NULL, expiration, &timeout, NULL);
+        result = TPM2_PolicySecret(tpm, session, authHandle, policySession->SessIn.sessionHandle, nonceTPM, NULL, NULL, expiration, &timeout, NULL);
     }
     return result;
 }
@@ -834,24 +870,6 @@ TPM2_HashSequenceStart(
     TSS_MARSHAL(TPMI_ALG_HASH, &hashAlg);
     DISPATCH_CMD(HashSequenceStart, NULL, 0, NULL, 0);
     *sequenceHandle = cmdCtx->RetHandle;
-    END_CMD();
-}
-
-TPM_RC
-TPM2_HMAC(
-    TSS_DEVICE             *tpm,                // IN/OUT
-    TSS_SESSION            *session,            // IN/OUT
-    TPMI_DH_OBJECT          handle,             // IN
-    TPM2B_MAX_BUFFER       *buffer,             // IN
-    TPMI_ALG_HASH           hashAlg,            // IN
-    TPM2B_DIGEST           *outHMAC             // OUT
-)
-{
-    BEGIN_CMD();
-    TSS_MARSHAL_OPT2B(TPM2B_MAX_BUFFER, buffer);
-    TSS_MARSHAL(TPMI_ALG_HASH, &hashAlg);
-    DISPATCH_CMD(HMAC, &handle, 1, &session, 1);
-    TSS_UNMARSHAL(TPM2B_DIGEST, outHMAC);
     END_CMD();
 }
 

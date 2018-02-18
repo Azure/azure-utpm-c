@@ -42,6 +42,7 @@ set(utpm_c_files
     ./src/Marshal.c
     ./src/Memory.c
     ./src/tpm_codec.c
+    ./src/gbfiledescript.c
 )
 
 set(utpm_h_files
@@ -49,6 +50,7 @@ set(utpm_h_files
     ./inc/azure_utpm_c/Capabilities.h
     ./inc/azure_utpm_c/CompilerDependencies.h
     ./inc/azure_utpm_c/GpMacros.h
+    ./inc/azure_utpm_c/gbfiledescript.h
     ./inc/azure_utpm_c/Implementation.h
     ./inc/azure_utpm_c/Marshal_fp.h
     ./inc/azure_utpm_c/Memory_fp.h
@@ -84,6 +86,7 @@ else()
         set(utpm_c_files
             ${utpm_c_files}
             ./src/tpm_comm_linux.c
+            ./src/tpm_socket_comm.c
         )
     endif()
 endif()

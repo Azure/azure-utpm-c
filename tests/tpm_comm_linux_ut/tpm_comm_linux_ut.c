@@ -11,6 +11,16 @@
 #include <stddef.h>
 #endif
 
+#undef DECLSPEC_IMPORT
+#pragma warning(disable: 4273)
+#ifdef WIN32
+#include <Winsock2.h>
+typedef unsigned long   htonl_type;
+#else
+#include <arpa/inet.h>
+typedef uint32_t        htonl_type;
+#endif
+
 static void* my_gballoc_malloc(size_t size)
 {
     return malloc(size);
@@ -19,15 +29,6 @@ static void* my_gballoc_malloc(size_t size)
 static void my_gballoc_free(void* ptr)
 {
     free(ptr);
-}
-
-static int TEST_FD_VALUE = 11;
-#define open my_open
-static int my_open(const char* path, int oflag)
-{
-    (void)path;
-    (void)oflag;
-    return TEST_FD_VALUE;
 }
 
 #include "testrunnerswitcher.h"
@@ -40,6 +41,8 @@ static int my_open(const char* path, int oflag)
 #define ENABLE_MOCKS
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
+#include "azure_utpm_c/tpm_socket_comm.h"
+#include "azure_utpm_c/gbfiledescript.h"
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/tpm_comm.h"
@@ -64,6 +67,7 @@ extern "C"
 
 static const unsigned char* TEMP_TPM_COMMAND = (const unsigned char*)0x00012345;
 #define TEMP_CMD_LENGTH         128
+static int TEST_FD_VALUE = 11;
 
 DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
@@ -72,6 +76,18 @@ static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
     char temp_str[256];
     (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
     ASSERT_FAIL(temp_str);
+}
+
+static TPM_SOCKET_HANDLE my_tpm_socket_create(const char* address, unsigned short port)
+{
+    (void)address;
+    (void)port;
+    return (TPM_SOCKET_HANDLE)my_gballoc_malloc(1);
+}
+
+static void my_tpm_socket_destroy(TPM_SOCKET_HANDLE handle)
+{
+    my_gballoc_free(handle);
 }
 
 static TEST_MUTEX_HANDLE g_testByTest;
@@ -95,10 +111,27 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         ASSERT_ARE_EQUAL(int, 0, result);
 
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_HANDLE, void*);
+        REGISTER_UMOCK_ALIAS_TYPE(htonl_type, size_t);
+        REGISTER_UMOCK_ALIAS_TYPE(TPM_SOCKET_HANDLE, void*);
+        REGISTER_UMOCK_ALIAS_TYPE(ssize_t, size_t);
 
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
+
+        REGISTER_GLOBAL_MOCK_RETURN(gbfiledesc_open, TEST_FD_VALUE);
+        REGISTER_GLOBAL_MOCK_RETURN(gbfiledesc_close, 0);
+        REGISTER_GLOBAL_MOCK_RETURN(gbfiledesc_access, 0);
+        REGISTER_GLOBAL_MOCK_RETURN(gbfiledesc_write, 0);
+        REGISTER_GLOBAL_MOCK_RETURN(gbfiledesc_read, 0);
+
+        REGISTER_GLOBAL_MOCK_HOOK(tpm_socket_create, my_tpm_socket_create);
+        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_socket_create, NULL);
+        REGISTER_GLOBAL_MOCK_HOOK(tpm_socket_destroy, my_tpm_socket_destroy);
+        REGISTER_GLOBAL_MOCK_RETURN(tpm_socket_read, 0);
+        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_socket_read, __LINE__);
+        REGISTER_GLOBAL_MOCK_RETURN(tpm_socket_send, 0);
+        REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_socket_send, __LINE__);
     }
 
     TEST_SUITE_CLEANUP(suite_cleanup)
@@ -137,10 +170,11 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         return result;
     }
 
-    TEST_FUNCTION(tpm_comm_create_succeed)
+    TEST_FUNCTION(tpm_comm_create_tpm_res_mgr_succeed)
     {
         //arrange
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
@@ -153,13 +187,144 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         tpm_comm_destroy(tpm_handle);
     }
 
+    TEST_FUNCTION(tpm_comm_create_raw_tpm_succeed)
+    {
+        //arrange
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+
+        //act
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+
+        //assert
+        ASSERT_IS_NOT_NULL(tpm_handle);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+    }
+
+    TEST_FUNCTION(tpm_comm_create_usermode_tpm_old_64_succeed)
+    {
+        //arrange
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+
+        //act
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+
+        //assert
+        ASSERT_IS_NOT_NULL(tpm_handle);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+    }
+
+    TEST_FUNCTION(tpm_comm_create_usermode_tpm_old_32_succeed)
+    {
+        //arrange
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+
+        //act
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+
+        //assert
+        ASSERT_IS_NOT_NULL(tpm_handle);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+    }
+
+    TEST_FUNCTION(tpm_comm_create_usermode_tpm_new_64_succeed)
+    {
+        //arrange
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+
+        //act
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+
+        //assert
+        ASSERT_IS_NOT_NULL(tpm_handle);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+    }
+
+    TEST_FUNCTION(tpm_comm_create_usermode_tpm_new_32_succeed)
+    {
+        //arrange
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+
+        //act
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+
+        //assert
+        ASSERT_IS_NOT_NULL(tpm_handle);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+    }
+
+    TEST_FUNCTION(tpm_comm_create_usermode_tpm_fail)
+    {
+        //arrange
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+        //act
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+
+        //assert
+        ASSERT_IS_NULL(tpm_handle);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+        tpm_comm_destroy(tpm_handle);
+    }
+
     TEST_FUNCTION(tpm_comm_destroy_succeed)
     {
         //arrange
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
         umock_c_reset_all_calls();
 
-        //STRICT_EXPECTED_CALL(Deinit_TPM_Codec(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_close(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
         //act
@@ -212,7 +377,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         int tpm_result = tpm_comm_submit_command(tpm_handle, NULL, TEMP_CMD_LENGTH, response, &resp_len);
 
         //assert
-        ASSERT_ARE_EQUAL(int, 0, tpm_result);
+        ASSERT_ARE_NOT_EQUAL(int, 0, tpm_result);
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
         //cleanup
@@ -225,9 +390,13 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
         umock_c_reset_all_calls();
 
+        STRICT_EXPECTED_CALL(gbfiledesc_write(IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(TEMP_CMD_LENGTH);
+        STRICT_EXPECTED_CALL(gbfiledesc_read(IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(TEMP_CMD_LENGTH);
+
         //act
-        uint32_t resp_len = 0;
-        int tpm_result = tpm_comm_submit_command(tpm_handle, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, NULL, &resp_len);
+        unsigned char response[TEMP_CMD_LENGTH];
+        uint32_t resp_len = TEMP_CMD_LENGTH;
+        int tpm_result = tpm_comm_submit_command(tpm_handle, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, &resp_len);
 
         //assert
         ASSERT_ARE_EQUAL(int, 0, tpm_result);

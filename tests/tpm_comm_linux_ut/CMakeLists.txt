@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 2.8.11)
 compileAsC11()
 set(theseTestsName tpm_comm_linux_ut)
 
+add_definitions(-DGB_DEBUG_FILEDESCRIPT)
+
 set(${theseTestsName}_test_files
 ${theseTestsName}.c
 )
