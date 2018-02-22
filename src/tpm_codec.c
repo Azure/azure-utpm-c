@@ -24,11 +24,10 @@
 
 // Forward Declarations
 static UINT16              NullSize = 0;
-static TPMT_SYM_DEF        NullSymDef = { TPM_ALG_NULL, 0, TPM_ALG_NULL };
-static TPMT_SYM_DEF_OBJECT NullSymDefObject = { TPM_ALG_NULL, 0, TPM_ALG_NULL };
-static TPMT_SIG_SCHEME     NullSigScheme = { TPM_ALG_NULL, { TPM_ALG_NULL } };
-static TPMT_TK_HASHCHECK   NullHashTk = { TPM_ST_HASHCHECK, TPM_RH_NULL, {0} };
-static const UINT32 TPM_20_EK_HANDLE = HR_PERSISTENT | 0x00010001;
+static TPMT_SYM_DEF        NullSymDef = { TPM_ALG_NULL , {0}, { TPM_ALG_NULL } };
+static TPMT_SYM_DEF_OBJECT NullSymDefObject = { TPM_ALG_NULL, {0}, {TPM_ALG_NULL} };
+static TPMT_SIG_SCHEME     NullSigScheme = { TPM_ALG_NULL, { {TPM_ALG_NULL} } };
+static TPMT_TK_HASHCHECK   NullHashTk = { TPM_ST_HASHCHECK, TPM_RH_NULL, {{0}} };
 static const UINT32 DPS_ID_KEY_HANDLE = HR_PERSISTENT | 0x00000100;
 
 typedef const char* (*ErrCodeMsgFnPtr)(UINT32 msgID);
@@ -654,7 +653,7 @@ TPM_RC TSS_CreatePrimary(TSS_DEVICE *tpm, TSS_SESSION *sess,
     TPM_HANDLE *outHandle, TPM2B_PUBLIC *outPub)
 {
     TPM2B_SENSITIVE_CREATE  sensCreate = { 0 };
-    TPM2B_DATA              outsideInfo = { 0 };
+    TPM2B_DATA              outsideInfo = { {0} };
     TPML_PCR_SELECTION      creationPCR = { 0 };
 
     return TPM2_CreatePrimary(tpm, sess, hierarchy, &sensCreate,
@@ -666,7 +665,7 @@ TPM_RC TSS_Create(TSS_DEVICE *tpm, TSS_SESSION* sess, TPM_HANDLE parent, TPM2B_S
     TPM2B_PUBLIC *inPub, TPM2B_PRIVATE *outPriv, TPM2B_PUBLIC *outPub)
 {
     TPM2B_SENSITIVE_CREATE  locSensCreate = { 0 };
-    TPM2B_DATA              outsideInfo = { 0 };
+    TPM2B_DATA              outsideInfo = { {0} };
     TPML_PCR_SELECTION      creationPCR = { 0 };
 
     return TPM2_Create(tpm, sess, parent,
@@ -1490,42 +1489,42 @@ static const char* TSS_StatusValueName(UINT32 rc)
     return unkCode;
 } // TSS_StatusValueName()
 
-// Returns mesages corresponding to TSS_STATUS codes
-static const char* TSS_GetStatusMessage(TSS_STATUS status)
-{
-    switch (status)
-    {
-    case TSS_SUCCESS:
-        return "TSS operation completed successfully";
-    case TSS_E_INVALID_PARAM:
-        return "Invalid parameter";
-    case TSS_E_SOCK_INIT:
-        return "Failed to initialize Socket subsystem";
-    case TSS_E_SOCK_SHUTDOWN:
-        return "Failed to shut down Socket subsystem";
-    case TSS_E_TPM_CONNECT:
-        return "Failed to establish TPM connection";
-    case TSS_E_TPM_SIM_INCOMPAT_VER:
-        return "Incompatible TPM Simulator version";
-    case TSS_E_TPM_SIM_STARTUP:
-        return "Unexpected TPM2_Startup() failure";
-
-        // TSS communication with TPM
-
-    case TSS_E_COMM:
-        return "General TPM communication channel failure";
-    case TSS_E_TPM_TRANSACTION:
-        return "TPM transaction failed";
-    case TSS_E_TPM_SIM_BAD_ACK:
-        return "Bad ACK tag in TPM Simulator transaction";
-    case TSS_E_BAD_RESPONSE:
-        return "Invalid TPM response buffer";
-    case TSS_E_BAD_RESPONSE_LEN:
-        return "Bad length field in TPM response buffer";
-    default:
-        return TSS_StatusValueName(status);
-    }
-} // TSS_GetStatusMessage()
+//// Returns mesages corresponding to TSS_STATUS codes
+//static const char* TSS_GetStatusMessage(TSS_STATUS status)
+//{
+//    switch (status)
+//    {
+//    case TSS_SUCCESS:
+//        return "TSS operation completed successfully";
+//    case TSS_E_INVALID_PARAM:
+//        return "Invalid parameter";
+//    case TSS_E_SOCK_INIT:
+//        return "Failed to initialize Socket subsystem";
+//    case TSS_E_SOCK_SHUTDOWN:
+//        return "Failed to shut down Socket subsystem";
+//    case TSS_E_TPM_CONNECT:
+//        return "Failed to establish TPM connection";
+//    case TSS_E_TPM_SIM_INCOMPAT_VER:
+//        return "Incompatible TPM Simulator version";
+//    case TSS_E_TPM_SIM_STARTUP:
+//        return "Unexpected TPM2_Startup() failure";
+//
+//        // TSS communication with TPM
+//
+//    case TSS_E_COMM:
+//        return "General TPM communication channel failure";
+//    case TSS_E_TPM_TRANSACTION:
+//        return "TPM transaction failed";
+//    case TSS_E_TPM_SIM_BAD_ACK:
+//        return "Bad ACK tag in TPM Simulator transaction";
+//    case TSS_E_BAD_RESPONSE:
+//        return "Invalid TPM response buffer";
+//    case TSS_E_BAD_RESPONSE_LEN:
+//        return "Bad length field in TPM response buffer";
+//    default:
+//        return TSS_StatusValueName(status);
+//    }
+//} // TSS_GetStatusMessage()
 
 UINT16 TSS_GetDigestSize(TPM_ALG_ID hashAlg)
 {

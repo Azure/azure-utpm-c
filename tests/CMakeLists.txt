@@ -3,6 +3,8 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
+usePermissiveRulesForSamplesAndTests()
+
 
 if (WIN32)
     add_subdirectory(tpm_comm_emulator_ut)

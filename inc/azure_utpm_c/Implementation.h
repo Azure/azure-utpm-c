@@ -11,6 +11,7 @@
 #pragma warning(disable: 4710)
 
 #include <stdio.h>
+#ifdef DRBG_DEBUG_PRINT
 static void
 dbgDumpMemBlock(const char* label, BYTE* buf, int size)
 {
@@ -25,6 +26,7 @@ dbgDumpMemBlock(const char* label, BYTE* buf, int size)
         printf("\n");
     }
 }
+#endif //DRBG_DEBUG_PRINT
 
 #undef TRUE
 #undef FALSE

@@ -11,16 +11,6 @@
 #include <stddef.h>
 #endif
 
-#undef DECLSPEC_IMPORT
-#pragma warning(disable: 4273)
-#ifdef WIN32
-#include <Winsock2.h>
-typedef unsigned long   htonl_type;
-#else
-#include <arpa/inet.h>
-typedef uint32_t        htonl_type;
-#endif
-
 static void* my_gballoc_malloc(size_t size)
 {
     return malloc(size);
@@ -46,16 +36,6 @@ static void my_gballoc_free(void* ptr)
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/tpm_comm.h"
-
-static htonl_type g_htonl_value = 1;
-
-#ifdef WIN32
-MOCK_FUNCTION_WITH_CODE(WSAAPI, htonl_type, htonl, htonl_type, hostlong)
-#else
-MOCK_FUNCTION_WITH_CODE(, htonl_type, htonl, htonl_type, hostlong)
-#endif
-htonl_type tmp_rtn = hostlong;
-MOCK_FUNCTION_END(tmp_rtn)
 
 #ifdef __cplusplus
 extern "C"
@@ -111,7 +91,6 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         ASSERT_ARE_EQUAL(int, 0, result);
 
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(htonl_type, size_t);
         REGISTER_UMOCK_ALIAS_TYPE(TPM_SOCKET_HANDLE, void*);
         REGISTER_UMOCK_ALIAS_TYPE(ssize_t, size_t);
 
