@@ -64,6 +64,20 @@ set(utpm_h_files
     ./inc/azure_utpm_c/tpm_comm.h
 )
 
+if (APPLE)
+    # For apple don't include file decript
+else()
+    set(utpm_h_files
+        ${utpm_h_files}
+        ./inc/azure_utpm_c/gbfiledescript.h
+    )
+
+    set(utpm_c_files
+        ${utpm_c_files}
+        ./src/gbfiledescript.c
+    )
+endif()
+
 if (${use_emulator})
     add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
 

@@ -4,8 +4,8 @@
 #ifndef GBFILEDESCRIPT_H
 #define GBFILEDESCRIPT_H
 
-#ifdef WIN32
-#define ssize_t size_t
+#ifndef ssize_t
+#define ssize_t int
 #endif
 
 #include "azure_c_shared_utility/umock_c_prod.h"

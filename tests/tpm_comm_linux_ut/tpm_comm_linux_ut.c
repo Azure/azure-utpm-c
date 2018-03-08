@@ -30,9 +30,9 @@ static void my_gballoc_free(void* ptr)
 
 #define ENABLE_MOCKS
 #include "azure_c_shared_utility/gballoc.h"
+#include "azure_utpm_c/gbfiledescript.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_utpm_c/tpm_socket_comm.h"
-#include "azure_utpm_c/gbfiledescript.h"
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/tpm_comm.h"
@@ -92,7 +92,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
 
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_HANDLE, void*);
         REGISTER_UMOCK_ALIAS_TYPE(TPM_SOCKET_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(ssize_t, size_t);
+        REGISTER_UMOCK_ALIAS_TYPE(ssize_t, unsigned int);
 
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
@@ -193,6 +193,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
@@ -216,6 +217,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
@@ -235,6 +237,8 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
@@ -280,6 +284,8 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);

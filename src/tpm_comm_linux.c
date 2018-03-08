@@ -31,12 +31,14 @@ static const char* const TPM_RM_DEVICE_NAME = "/dev/tpmrm0";
 
 static const char* const TPM_OLD_USERMODE_RESOURCE_MGR_64 = "/usr/lib/x86_64-linux-gnu/libtctisocket.so.0";
 static const char* const TPM_OLD_USERMODE_RESOURCE_MGR_32 = "/usr/lib/i386-linux-gnu/libtctisocket.so.0";
+static const char* const TPM_OLD_USERMODE_RESOURCE_MGR_ARM = "/usr/lib/arm-linux-gnueabihf/libtctisocket.so.0";
 static const char* const TPM_NEW_USERMODE_RESOURCE_MGR_64 = "/usr/lib/x86_64-linux-gnu/libtcti-socket.so.0";
 static const char* const TPM_NEW_USERMODE_RESOURCE_MGR_32 = "/usr/lib/i386-linux-gnu/libtcti-socket.so.0";
+static const char* const TPM_NEW_USERMODE_RESOURCE_MGR_ARM = "/usr/lib/arm-linux-gnueabihf/libtcti-socket.so.0";
 
 #define MIN_TPM_RESPONSE_LENGTH     10
 
-#define TPM_UM_RM_PORT              2321
+#define TPM_UM_RM_PORT              2323
 
 #define REMOTE_SEND_COMMAND         8
 #define REMOTE_SESSION_END_CMD      20
@@ -139,9 +141,11 @@ static int tpm_usermode_resmgr_connect(TPM_COMM_INFO* handle)
 {
     bool result;
     bool oldTrm = access(TPM_OLD_USERMODE_RESOURCE_MGR_64, F_OK) != -1
-               || access(TPM_OLD_USERMODE_RESOURCE_MGR_32, F_OK) != -1;
+               || access(TPM_OLD_USERMODE_RESOURCE_MGR_32, F_OK) != -1
+               || access(TPM_OLD_USERMODE_RESOURCE_MGR_ARM, F_OK) != -1;
     bool newTrm = access(TPM_NEW_USERMODE_RESOURCE_MGR_64, F_OK) != -1
-               || access(TPM_NEW_USERMODE_RESOURCE_MGR_32, F_OK) != -1;
+               || access(TPM_NEW_USERMODE_RESOURCE_MGR_32, F_OK) != -1
+               || access(TPM_NEW_USERMODE_RESOURCE_MGR_ARM, F_OK) != -1;
     if (!(oldTrm || newTrm))
     {
         LogError("Failure: No user mode TRM found.");
