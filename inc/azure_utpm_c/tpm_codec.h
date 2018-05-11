@@ -92,6 +92,8 @@ MOCKABLE_FUNCTION(, TPM_RC, TSS_Create, TSS_DEVICE*, tpm, TSS_SESSION*, sess, TP
 
 MOCKABLE_FUNCTION(, UINT32, TSS_GetTpmProperty, TSS_DEVICE*, tpm, TPM_PT, prop);
 
+MOCKABLE_FUNCTION(, TPM_HANDLE, TSS_CreatePersistentKey, TSS_DEVICE*, tpm_device, TPM_HANDLE, request_handle, TSS_SESSION*, sess, TPMI_DH_OBJECT, hierarchy, TPM2B_PUBLIC*, inPub, TPM2B_PUBLIC*, outPub);
+
 TPM_RC TSS_Hash(
     TSS_DEVICE             *tpm,                // IN/OUT
     BYTE                   *data,               // IN

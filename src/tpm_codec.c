@@ -200,6 +200,51 @@ static TPM_RC CleanResponseCode(TPM_RC rawResponse)
     return rawResponse & mask;
 }
 
+TPM_HANDLE TSS_CreatePersistentKey(TSS_DEVICE* tpm_device, TPM_HANDLE request_handle, TSS_SESSION* sess, TPMI_DH_OBJECT hierarchy, TPM2B_PUBLIC* inPub, TPM2B_PUBLIC* outPub)
+{
+    TPM_HANDLE result;
+    TPM_RC tpm_result;
+    TPM2B_NAME name;
+    TPM2B_NAME qName;
+
+    tpm_result = TPM2_ReadPublic(tpm_device, request_handle, outPub, &name, &qName);
+    if (tpm_result == TPM_RC_SUCCESS)
+    {
+        result = request_handle;
+    }
+    else if (tpm_result != TPM_RC_HANDLE)
+    {
+        LogError("Failed calling TPM2_ReadPublic 0%x", tpm_result);
+        result = 0;
+    }
+    else
+    {
+        if (TSS_CreatePrimary(tpm_device, sess, hierarchy, inPub, &result, outPub) != TPM_RC_SUCCESS)
+        {
+            LogError("Failed calling TSS_CreatePrimary");
+            result = 0;
+        }
+        else
+        {
+            if (TPM2_EvictControl(tpm_device, sess, TPM_RH_OWNER, result, request_handle) != TPM_RC_SUCCESS)
+            {
+                LogError("Failed calling TPM2_EvictControl");
+                result = 0;
+            }
+            else if (TPM2_FlushContext(tpm_device, result) != TPM_RC_SUCCESS)
+            {
+                LogError("Failed calling TPM2_FlushContext");
+                result = 0;
+            }
+            else
+            {
+                result = request_handle;
+            }
+        }
+    }
+    return result;
+}
+
 TPM_RC Initialize_TPM_Codec(TSS_DEVICE* tpm)
 {
     TPM_RC result;

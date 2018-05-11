@@ -23,7 +23,7 @@ set(original_run_unittests ${run_unittests})
 set(run_e2e_tests OFF)
 set(run_unittests OFF)
 
-add_subdirectory(./deps/c-utility)
+add_subdirectory(./deps/c-utility EXCLUDE_FROM_ALL)
 
 if (${original_run_e2e_tests} OR ${original_run_unittests})
     add_subdirectory(./deps/c-utility/testtools)

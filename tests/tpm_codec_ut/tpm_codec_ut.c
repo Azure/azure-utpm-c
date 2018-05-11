@@ -57,6 +57,22 @@ extern "C"
 #define TEST_COMM_HANDLE        (TPM_COMM_HANDLE)0x123456
 #define TEST_TPMI_DH_OBJECT     (TPMI_DH_OBJECT)0x223456
 
+static const UINT32 TPM_20_HANDLE = HR_PERSISTENT | 0x00010001;
+
+static TPM2B_PUBLIC tpm_public_value = { 0,   // size will be computed during marshaling
+{
+    TPM_ALG_RSA,                    // TPMI_ALG_PUBLIC      type
+    TPM_ALG_SHA256,                 // TPMI_ALG_HASH        nameAlg
+{ 0 },                          // TPMA_OBJECT  objectAttributes (set below)
+{ 32,
+{ 0x83, 0x71, 0x97, 0x00, 0x00, 0x00, 0xb3, 0xf8,
+0x1a, 0x90, 0xcc, 0x00, 0x46, 0x00, 0xd7, 0x24,
+0xfd, 0x52, 0xd7, 0x00, 0x06, 0x00, 0x0b, 0x64,
+0xf2, 0xa1, 0xda, 0x00, 0x33, 0x00, 0x69, 0xaa }
+},                              // TPM2B_DIGEST         authPolicy
+{ 0 },                          // TPMU_PUBLIC_PARMS    parameters (set below)
+{ 0 }                           // TPMU_PUBLIC_ID       unique
+} };
 
 DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
@@ -397,6 +413,47 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         Deinit_TPM_Codec(NULL);
 
         //assert
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        //cleanup
+    }
+
+    TEST_FUNCTION(TSS_create_persistent_key_success)
+    {
+        //arrange
+        TSS_SESSION session = { 0 };
+        TSS_DEVICE tss_dev = { 0 };
+        TPM_HANDLE request_handle = TPM_20_HANDLE;
+        TPMI_DH_OBJECT hierarchy = TPM_RH_ENDORSEMENT;
+        TPM2B_PUBLIC inPub = tpm_public_value;
+        TPM2B_PUBLIC outPub;
+
+        (void)Initialize_TPM_Codec(&tss_dev);
+        umock_c_reset_all_calls();
+
+        uint32_t expected_size = 4096;
+        uint32_t raw_resp = 4096;
+
+        STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(tpm_comm_submit_command(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPMI_ST_COMMAND_TAG_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&expected_size, sizeof(expected_size));
+        STRICT_EXPECTED_CALL(UINT32_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer_target(&raw_resp, sizeof(raw_resp));
+        STRICT_EXPECTED_CALL(TPM2B_PUBLIC_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(TPM2B_NAME_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(TPM2B_NAME_Unmarshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+        //act
+        TPM_HANDLE handle = TSS_CreatePersistentKey(&tss_dev, request_handle, &session, hierarchy, &inPub, &outPub);
+
+        //assert
+        ASSERT_ARE_NOT_EQUAL(uint32_t, 0, handle);
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
         //cleanup
