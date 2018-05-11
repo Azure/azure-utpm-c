@@ -183,7 +183,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         setup_comm_create_mocks();
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -203,7 +203,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         g_tpm_version = TPM_VERSION_12;
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NULL(tpm_handle);
@@ -232,7 +232,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
             char tmp_msg[128];
             sprintf(tmp_msg, "tpm_comm_create failure in test %zu/%zu", index, count);
 
-            TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+            TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
             //assert
             ASSERT_IS_NULL_WITH_MSG(tpm_handle, tmp_msg);
@@ -242,7 +242,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
     TEST_FUNCTION(tpm_comm_destroy_succeed)
     {
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         STRICT_EXPECTED_CALL(Tbsip_Context_Close(IGNORED_PTR_ARG));
@@ -275,7 +275,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         TPM_COMM_TYPE comm_type;
 
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         //act
@@ -308,7 +308,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
     TEST_FUNCTION(tpm_comm_submit_command_cmd_NULL_fail)
     {
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         //act
@@ -327,7 +327,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
     TEST_FUNCTION(tpm_comm_submit_command_response_NULL_fail)
     {
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         //act
@@ -348,7 +348,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         uint32_t resp_len = TEMP_CMD_LENGTH;
 
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         STRICT_EXPECTED_CALL(Tbsip_Submit_Command(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, IGNORED_PTR_ARG))
@@ -371,7 +371,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         uint32_t resp_len = TEMP_CMD_LENGTH;
 
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         STRICT_EXPECTED_CALL(Tbsip_Submit_Command(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, IGNORED_PTR_ARG));

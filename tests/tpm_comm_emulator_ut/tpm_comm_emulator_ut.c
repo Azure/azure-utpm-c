@@ -49,11 +49,13 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/socketio.h"
 #include "azure_utpm_c/tpm_socket_comm.h"
+#include "azure_c_shared_utility/crt_abstractions.h"
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/tpm_comm.h"
 
 static htonl_type g_htonl_value = 1;
+static const char* const TEST_SOCKET_ENDPOINT = "127.0.0.1";
 
 #ifdef WIN32
 MOCK_FUNCTION_WITH_CODE(WSAAPI, htonl_type, htonl, htonl_type, hostlong)
@@ -94,6 +96,15 @@ static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
     char temp_str[256];
     (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
     ASSERT_FAIL(temp_str);
+}
+
+static int my_mallocAndStrcpy_s(char** destination, const char* source)
+{
+    (void)source;
+    size_t src_len = strlen(source);
+    *destination = (char*)my_gballoc_malloc(src_len + 1);
+    strcpy(*destination, source);
+    return 0;
 }
 
 static TPM_SOCKET_HANDLE my_tpm_socket_create(const char* address, unsigned short port)
@@ -137,6 +148,9 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_realloc, NULL);
+
+        REGISTER_GLOBAL_MOCK_HOOK(mallocAndStrcpy_s, my_mallocAndStrcpy_s);
+        REGISTER_GLOBAL_MOCK_FAIL_RETURN(mallocAndStrcpy_s, __LINE__);
 
         REGISTER_GLOBAL_MOCK_HOOK(tpm_socket_create, my_tpm_socket_create);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(tpm_socket_create, NULL);
@@ -204,6 +218,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
+        STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
         setup_socket_send_mocks();
         setup_socket_send_mocks();
@@ -247,7 +262,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         setup_comm_create_mocks();
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(TEST_SOCKET_ENDPOINT);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -267,7 +282,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
         umock_c_negative_tests_snapshot();
 
-        size_t calls_cannot_fail[] = { 2, 4, 7, 9, 11, 13, 14, 17, 20, 21 };
+        size_t calls_cannot_fail[] = { 3, 5, 8, 10, 12, 14, 15, 16, 18, 21, 22 };
 
         //act
         size_t count = umock_c_negative_tests_call_count();
@@ -284,7 +299,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
             char tmp_msg[128];
             sprintf(tmp_msg, "tpm_comm_create failure in test %zu/%zu", index, count);
 
-            TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+            TPM_COMM_HANDLE tpm_handle = tpm_comm_create(TEST_SOCKET_ENDPOINT);
 
             //assert
             ASSERT_IS_NULL_WITH_MSG(tpm_handle, tmp_msg);
@@ -298,11 +313,12 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
     {
         //arrange
         setup_comm_create_mocks();
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(TEST_SOCKET_ENDPOINT);
         umock_c_reset_all_calls();
 
         setup_socket_send_mocks();
         STRICT_EXPECTED_CALL(tpm_socket_destroy(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
         //act
@@ -351,7 +367,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
         //arrange
         setup_comm_create_mocks();
-        tpm_handle = tpm_comm_create();
+        tpm_handle = tpm_comm_create(TEST_SOCKET_ENDPOINT);
         umock_c_reset_all_calls();
 
         setup_tpm_comm_submit_command_mocks();
@@ -380,7 +396,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
         //arrange
         setup_comm_create_mocks();
-        tpm_handle = tpm_comm_create();
+        tpm_handle = tpm_comm_create(TEST_SOCKET_ENDPOINT);
         umock_c_reset_all_calls();
 
         setup_tpm_comm_submit_command_mocks();

@@ -76,8 +76,9 @@ static TPM2B_PUBLIC tpm_public_value = { 0,   // size will be computed during ma
 
 DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
-static TPM_COMM_HANDLE my_tpm_comm_create(void)
+static TPM_COMM_HANDLE my_tpm_comm_create(const char* endpoint)
 {
+    (void)endpoint;
     return (TPM_COMM_HANDLE)my_gballoc_malloc(1);
 }
 
@@ -305,11 +306,11 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(Initialize_TPM_Codec_emulator_succeed)
     {
         //arrange
-        TSS_DEVICE tpm_device;
+        TSS_DEVICE tpm_device = { 0 };
         uint32_t expected_size = 4096;
         uint32_t raw_resp = 4096;
 
-        STRICT_EXPECTED_CALL(tpm_comm_create());
+        STRICT_EXPECTED_CALL(tpm_comm_create(IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(tpm_comm_get_type(IGNORED_PTR_ARG)).SetReturn(TPM_COMM_TYPE_EMULATOR);
         STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
@@ -374,11 +375,11 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(Deinit_TPM_Codec_succeed)
     {
         //arrange
-        TSS_DEVICE tpm_device;
+        TSS_DEVICE tpm_device = { 0 };
         uint32_t expected_size = 4096;
         uint32_t raw_resp = 4096;
 
-        STRICT_EXPECTED_CALL(tpm_comm_create());
+        STRICT_EXPECTED_CALL(tpm_comm_create(IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(tpm_comm_get_type(IGNORED_PTR_ARG)).SetReturn(TPM_COMM_TYPE_EMULATOR);
         STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(UINT16_Marshal(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
@@ -478,7 +479,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(TSS_StartAuthSession_tss_session_NULL_fail)
     {
         //arrange
-        TSS_DEVICE tss_dev;
+        TSS_DEVICE tss_dev = { 0 };
         TPMA_SESSION sess_attrib = { 1 };
 
         //act
@@ -494,7 +495,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(TSS_StartAuthSession_succeed)
     {
         //arrange
-        TSS_DEVICE tss_dev;
+        TSS_DEVICE tss_dev = { 0 };
         TPMA_SESSION sess_attrib = { 1 };
         TSS_SESSION session;
 
@@ -516,7 +517,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(TSS_PolicySecret_tss_sesssion_NULL_fail)
     {
         //arrange
-        TSS_DEVICE tss_dev;
+        TSS_DEVICE tss_dev = { 0 };
         TSS_SESSION session;
 
         //act
@@ -532,7 +533,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(TSS_PolicySecret_policy_sesssion_NULL_fail)
     {
         //arrange
-        TSS_DEVICE tss_dev;
+        TSS_DEVICE tss_dev = { 0 };
         TSS_SESSION session;
 
         //act
@@ -587,7 +588,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
     TEST_FUNCTION(TPM2_ReadPublic_tpm_public_NULL_fail)
     {
         //arrange
-        TSS_DEVICE tss_dev;
+        TSS_DEVICE tss_dev = { 0 };
         TPM_HANDLE request_handle = HR_PERSISTENT;
         TPM2B_NAME tpm_name;
         TPM2B_NAME qualified_name;

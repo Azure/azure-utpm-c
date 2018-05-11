@@ -9,6 +9,7 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/socketio.h"
 #include "azure_c_shared_utility/tickcounter.h"
+#include "azure_c_shared_utility/crt_abstractions.h"
 
 #include "azure_utpm_c/tpm_comm.h"
 #include "azure_utpm_c/tpm_socket_comm.h"
@@ -36,6 +37,7 @@ typedef struct TPM_COMM_INFO_TAG
     TPM_SOCKET_HANDLE socket_conn;
     unsigned char* recv_bytes;
     size_t recv_length;
+    char* socket_ip;
 } TPM_COMM_INFO;
 
 enum TpmSimCommands
@@ -49,7 +51,6 @@ enum TpmSimCommands
     Remote_SessionEnd = 20,
     Remote_Stop = 21,
 };
-
 
 
 static int read_sync_bytes(TPM_COMM_INFO* comm_info, unsigned char* tpm_bytes, uint32_t* bytes_len)
@@ -92,12 +93,12 @@ static void close_simulator(TPM_COMM_INFO* tpm_comm_info)
     (void)send_sync_cmd(tpm_comm_info, REMOTE_SESSION_END_CMD);
 }
 
-static int power_on_simulator()
+static int power_on_simulator(TPM_COMM_INFO* tpm_comm_info)
 {
     int result;
     TPM_SOCKET_HANDLE platform_conn;
 
-    if ((platform_conn = tpm_socket_create(TPM_SIMULATOR_ADDRESS, TPM_SIMULATOR_PLATFORM_PORT) ) == NULL)
+    if ((platform_conn = tpm_socket_create(tpm_comm_info->socket_ip, TPM_SIMULATOR_PLATFORM_PORT) ) == NULL)
     {
         LogError("Failure: connecting to tpm simulator platform interface.");
         result = __FAILURE__;
@@ -202,7 +203,7 @@ static int execute_simulator_setup(TPM_COMM_INFO* tpm_comm_info)
         LogError("Failure ack byte from tpm is invalid.");
         result = __FAILURE__;
     }
-    else if (power_on_simulator() != 0)
+    else if (power_on_simulator(tpm_comm_info) != 0)
     {
         LogError("Failure powering on simulator.");
         result = __FAILURE__;
@@ -214,7 +215,7 @@ static int execute_simulator_setup(TPM_COMM_INFO* tpm_comm_info)
     return result;
 }
 
-TPM_COMM_HANDLE tpm_comm_create()
+TPM_COMM_HANDLE tpm_comm_create(const char* endpoint)
 {
     TPM_COMM_INFO* result;
     if ((result = malloc(sizeof(TPM_COMM_INFO))) == NULL)
@@ -224,9 +225,25 @@ TPM_COMM_HANDLE tpm_comm_create()
     else
     {
         memset(result, 0, sizeof(TPM_COMM_INFO));
-        if ((result->socket_conn = tpm_socket_create(TPM_SIMULATOR_ADDRESS, TPM_SIMULATOR_PORT)) == NULL)
+        int cpy_res;
+        if (endpoint != NULL)
+        {
+            cpy_res = mallocAndStrcpy_s(&result->socket_ip, endpoint);
+        }
+        else
+        {
+            cpy_res = mallocAndStrcpy_s(&result->socket_ip, TPM_SIMULATOR_ADDRESS);
+        }
+        if (cpy_res != 0)
+        {
+            LogError("Failure: to copy endpoint");
+            free(result);
+            result = NULL;
+        }
+        else if ((result->socket_conn = tpm_socket_create(result->socket_ip, TPM_SIMULATOR_PORT)) == NULL)
         {
             LogError("Failure: connecting to tpm simulator.");
+            free(result->socket_ip);
             free(result);
             result = NULL;
         }
@@ -234,6 +251,7 @@ TPM_COMM_HANDLE tpm_comm_create()
         {
             LogError("Failure: connecting to tpm simulator.");
             tpm_socket_destroy(result->socket_conn);
+            free(result->socket_ip);
             free(result);
             result = NULL;
         }
@@ -247,6 +265,7 @@ void tpm_comm_destroy(TPM_COMM_HANDLE handle)
     {
         close_simulator(handle);
         tpm_socket_destroy(handle->socket_conn);
+        free(handle->socket_ip);
         free(handle);
     }
 }

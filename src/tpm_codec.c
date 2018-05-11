@@ -253,7 +253,7 @@ TPM_RC Initialize_TPM_Codec(TSS_DEVICE* tpm)
         LogError("Invalid parameter tpm is NULL");
         result = TPM_RC_FAILURE;
     }
-    else if ( (tpm->tpm_comm_handle = tpm_comm_create()) == NULL)
+    else if ( (tpm->tpm_comm_handle = tpm_comm_create(tpm->comms_endpoint)) == NULL)
     {
         LogError("creating tpm_comm object");
         result = TPM_RC_FAILURE;

@@ -156,7 +156,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -174,7 +174,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -197,7 +197,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -221,7 +221,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -245,7 +245,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -268,7 +268,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NOT_NULL(tpm_handle);
@@ -293,7 +293,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
         //act
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
         //assert
         ASSERT_IS_NULL(tpm_handle);
@@ -306,7 +306,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_destroy_succeed)
     {
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         STRICT_EXPECTED_CALL(gbfiledesc_close(IGNORED_NUM_ARG));
@@ -353,7 +353,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_submit_command_cmd_NULL_fail)
     {
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         //act
@@ -372,7 +372,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_submit_command_succees)
     {
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         STRICT_EXPECTED_CALL(gbfiledesc_write(IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(TEMP_CMD_LENGTH);
@@ -394,7 +394,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     /*TEST_FUNCTION(tpm_comm_submit_command_succees)
     {
         //arrange
-        TPM_COMM_HANDLE tpm_handle = tpm_comm_create();
+        TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
         //act

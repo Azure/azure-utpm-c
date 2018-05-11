@@ -63,6 +63,8 @@ typedef struct
 
     // Raw response code returned by the last command executed by the given TPM device
     TPM_RC              LastRawResponse;
+
+    const char* comms_endpoint;
 }
 TSS_DEVICE;
 

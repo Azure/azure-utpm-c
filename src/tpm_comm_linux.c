@@ -190,9 +190,10 @@ static int send_old_um_trm_data(TPM_COMM_HANDLE handle)
     return result;
 }
 
-TPM_COMM_HANDLE tpm_comm_create()
+TPM_COMM_HANDLE tpm_comm_create(const char* endpoint)
 {
     TPM_COMM_INFO* result;
+    (void)endpoint;
     if ((result = malloc(sizeof(TPM_COMM_INFO))) == NULL)
     {
         LogError("Failure: malloc tpm communication info.");

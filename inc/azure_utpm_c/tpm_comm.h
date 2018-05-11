@@ -24,7 +24,7 @@ DEFINE_ENUM(TPM_COMM_TYPE, TPM_COMM_TYPE_VALUES);
 
 typedef struct TPM_COMM_INFO_TAG* TPM_COMM_HANDLE;
 
-MOCKABLE_FUNCTION(, TPM_COMM_HANDLE, tpm_comm_create);
+MOCKABLE_FUNCTION(, TPM_COMM_HANDLE, tpm_comm_create, const char*, endpoint);
 MOCKABLE_FUNCTION(, void, tpm_comm_destroy, TPM_COMM_HANDLE, handle);
 
 MOCKABLE_FUNCTION(, TPM_COMM_TYPE, tpm_comm_get_type, TPM_COMM_HANDLE, handle);

@@ -76,9 +76,10 @@ static void cleanup_memory(TPM_COMM_INFO* tpm_info)
     free(tpm_info);
 }
 
-TPM_COMM_HANDLE tpm_comm_create()
+TPM_COMM_HANDLE tpm_comm_create(const char* endpoint)
 {
     TPM_COMM_INFO* result;
+    (void)endpoint;
     if ((result = malloc(sizeof(TPM_COMM_INFO))) == NULL)
     {
         LogError("Failure: malloc tpm communication info.");
