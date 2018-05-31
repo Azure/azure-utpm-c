@@ -8,7 +8,9 @@
 #include    "BaseTypes.h"
 #include    "TPMB.h"
 
+#if defined (_MSC_VER)
 #pragma warning(disable: 4710)
+#endif
 
 #include <stdio.h>
 #ifdef DRBG_DEBUG_PRINT
