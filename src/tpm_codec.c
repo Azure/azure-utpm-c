@@ -1075,8 +1075,6 @@ TSS_DispatchCmd(
         {
             result = TPM_RC_SUCCESS;
 
-            // Unmarshal command header
-
             cmdCtx->RespBytesLeft = cmdCtx->RespSize;
             tpm->LastRawResponse = TPM_RC_NOT_USED;
 
