@@ -150,7 +150,7 @@ typedef enum _OBJECT_ATTR
     Encrypt = 0x40000
 } OBJECT_ATTR;
 
-MOCKABLE_FUNCTION(, TPMA_OBJECT, ToTpmaObject, OBJECT_ATTR, attrs);
+MOCKABLE_FUNCTION(, TPMA_OBJECT, ToTpmaObject, UINT32, attrs);
 
 MOCKABLE_FUNCTION(, TPM_RC, Initialize_TPM_Codec, TSS_DEVICE*, tpm);
 

@@ -1075,61 +1075,51 @@ TSS_DispatchCmd(
         {
             result = TPM_RC_SUCCESS;
 
-            // Unmarshal command header
-            if (*(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_NO_SESSIONS
-                && *(TPM_ST*)cmdCtx->RespBuffer == TPM_ST_SESSIONS)
+            cmdCtx->RespBytesLeft = cmdCtx->RespSize;
+            tpm->LastRawResponse = TPM_RC_NOT_USED;
+
+            TSS_UNMARSHAL(TPMI_ST_COMMAND_TAG, &tag);
+            TSS_UNMARSHAL(UINT32, &expectedSize);
+            TSS_UNMARSHAL(TPM_RC, &tpm->LastRawResponse);
+
+            if (cmdCtx->RespSize != expectedSize)
             {
-                LogError("response buffer is invalid.");
-                result = TPM_RC_BAD_TAG;
+                LogError("response size is not expected size.");
+                result = TPM_RC_COMMAND_SIZE;//TSS_E_BAD_RESPONSE_LEN;
             }
             else
             {
-                cmdCtx->RespBytesLeft = cmdCtx->RespSize;
-                tpm->LastRawResponse = TPM_RC_NOT_USED;
-
-                TSS_UNMARSHAL(TPMI_ST_COMMAND_TAG, &tag);
-                TSS_UNMARSHAL(UINT32, &expectedSize);
-                TSS_UNMARSHAL(TPM_RC, &tpm->LastRawResponse);
-
-                if (cmdCtx->RespSize != expectedSize)
+                if (tpm->LastRawResponse == TPM_RC_SUCCESS)
                 {
-                    LogError("response size is not expected size.");
-                    result = TPM_RC_COMMAND_SIZE;//TSS_E_BAD_RESPONSE_LEN;
+                    if (cmdCode == TPM_CC_CreatePrimary
+                        || cmdCode == TPM_CC_Load
+                        || cmdCode == TPM_CC_HMAC_Start
+                        || cmdCode == TPM_CC_ContextLoad
+                        || cmdCode == TPM_CC_LoadExternal
+                        || cmdCode == TPM_CC_StartAuthSession
+                        || cmdCode == TPM_CC_HashSequenceStart
+                        || cmdCode == TPM_CC_CreateLoaded)
+                    {
+                        // Response buffer contains a handle returned by the TPM
+                        TSS_UNMARSHAL(TPM_HANDLE, &cmdCtx->RetHandle);
+                        //pAssert(cmdCtx->RetHandle != 0 && cmdCtx->RetHandle != TPM_RH_UNASSIGNED);
+                        if (cmdCtx->RetHandle == 0 || cmdCtx->RetHandle == TPM_RH_UNASSIGNED)
+                        {
+                            LogError("unable to unmarshal return handle.");
+                            result = TPM_RC_COMMAND_CODE;
+                        }
+                    }
+                    if (result == TPM_RC_SUCCESS && tag == TPM_ST_SESSIONS)
+                    {
+                        // Response buffer contains a field specifying the size of returned parameters
+                        TSS_UNMARSHAL(UINT32, &cmdCtx->RespParamSize);
+                    }
                 }
-                else
-                {
-                    if (tpm->LastRawResponse == TPM_RC_SUCCESS)
-                    {
-                        if (cmdCode == TPM_CC_CreatePrimary
-                            || cmdCode == TPM_CC_Load
-                            || cmdCode == TPM_CC_HMAC_Start
-                            || cmdCode == TPM_CC_ContextLoad
-                            || cmdCode == TPM_CC_LoadExternal
-                            || cmdCode == TPM_CC_StartAuthSession
-                            || cmdCode == TPM_CC_HashSequenceStart
-                            || cmdCode == TPM_CC_CreateLoaded)
-                        {
-                            // Response buffer contains a handle returned by the TPM
-                            TSS_UNMARSHAL(TPM_HANDLE, &cmdCtx->RetHandle);
-                            //pAssert(cmdCtx->RetHandle != 0 && cmdCtx->RetHandle != TPM_RH_UNASSIGNED);
-                            if (cmdCtx->RetHandle == 0 || cmdCtx->RetHandle == TPM_RH_UNASSIGNED)
-                            {
-                                LogError("unable to unmarshal return handle.");
-                                result = TPM_RC_COMMAND_CODE;
-                            }
-                        }
-                        if (result == TPM_RC_SUCCESS && tag == TPM_ST_SESSIONS)
-                        {
-                            // Response buffer contains a field specifying the size of returned parameters
-                            TSS_UNMARSHAL(UINT32, &cmdCtx->RespParamSize);
-                        }
-                    }
 
-                    if (result == TPM_RC_SUCCESS)
-                    {
-                        // Remove error location information from the response code, if any
-                        result = CleanResponseCode(tpm->LastRawResponse);
-                    }
+                if (result == TPM_RC_SUCCESS)
+                {
+                    // Remove error location information from the response code, if any
+                    result = CleanResponseCode(tpm->LastRawResponse);
                 }
             }
         }
@@ -1177,7 +1167,7 @@ TSS_SendCommand(
 //
 // TSS helpers
 //
-TPMA_OBJECT ToTpmaObject(OBJECT_ATTR attrs)
+TPMA_OBJECT ToTpmaObject(UINT32 attrs)
 {
     return *(TPMA_OBJECT*)&attrs;
 }
