@@ -1199,7 +1199,8 @@ TSS_BuildCommand(
         || (!handles && numHandles)
         || (!sessions && numSessions)
         || (!params && paramsSize)
-        || (!cmdBuffer || bufCapacity < STD_RESPONSE_HEADER) )
+        || (bufCapacity < 0)
+        || (!cmdBuffer || (((UINT32)bufCapacity) < STD_RESPONSE_HEADER)) )
     {
         return 0;
     }
