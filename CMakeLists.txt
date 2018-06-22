@@ -43,6 +43,11 @@ set(TPM_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what 
 
 set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
 
+if(NOT MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-field-initializers ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers ")
+endif()
+
 set(utpm_c_files
     ./src/Marshal.c
     ./src/Memory.c
