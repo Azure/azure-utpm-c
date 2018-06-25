@@ -214,26 +214,26 @@ TPM_HANDLE TSS_CreatePersistentKey(TSS_DEVICE* tpm_device, TPM_HANDLE request_ha
     }
     else if (tpm_result != TPM_RC_HANDLE)
     {
-        LogError("Failed calling TPM2_ReadPublic 0%x", tpm_result);
+        LogError("Failed calling TPM2_ReadPublic 0x%x", tpm_result);
         result = 0;
     }
     else
     {
-        if (TSS_CreatePrimary(tpm_device, sess, hierarchy, inPub, &result, outPub) != TPM_RC_SUCCESS)
+        if ((tpm_result = TSS_CreatePrimary(tpm_device, sess, hierarchy, inPub, &result, outPub)) != TPM_RC_SUCCESS)
         {
-            LogError("Failed calling TSS_CreatePrimary");
+            LogError("Failed calling TSS_CreatePrimary 0x%x", tpm_result);
             result = 0;
         }
         else
         {
-            if (TPM2_EvictControl(tpm_device, sess, TPM_RH_OWNER, result, request_handle) != TPM_RC_SUCCESS)
+            if ((tpm_result = TPM2_EvictControl(tpm_device, sess, TPM_RH_OWNER, result, request_handle)) != TPM_RC_SUCCESS)
             {
-                LogError("Failed calling TPM2_EvictControl");
+                LogError("Failed calling TPM2_EvictControl 0x%x", tpm_result);
                 result = 0;
             }
-            else if (TPM2_FlushContext(tpm_device, result) != TPM_RC_SUCCESS)
+            else if ((tpm_result = TPM2_FlushContext(tpm_device, result)) != TPM_RC_SUCCESS)
             {
-                LogError("Failed calling TPM2_FlushContext");
+                LogError("Failed calling TPM2_FlushContext 0x%x", tpm_result);
                 result = 0;
             }
             else
@@ -1199,7 +1199,8 @@ TSS_BuildCommand(
         || (!handles && numHandles)
         || (!sessions && numSessions)
         || (!params && paramsSize)
-        || (!cmdBuffer || bufCapacity < STD_RESPONSE_HEADER) )
+        || (bufCapacity < 0)
+        || (!cmdBuffer || (((UINT32)bufCapacity) < STD_RESPONSE_HEADER)))
     {
         return 0;
     }
