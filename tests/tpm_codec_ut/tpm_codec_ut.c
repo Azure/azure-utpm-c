@@ -818,4 +818,67 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         //cleanup
     }
 
+    TEST_FUNCTION(ToTpmaObject_success)
+    {
+        //arrange
+        UINT32 attrs_all = FixedTPM | StClear | FixedParent | SensitiveDataOrigin | UserWithAuth | AdminWithPolicy | NoDA | EncryptedDuplication | Restricted | Decrypt | Sign | Encrypt;
+        UINT32 attrs_low = FixedTPM | StClear | FixedParent | SensitiveDataOrigin | UserWithAuth | AdminWithPolicy | NoDA | EncryptedDuplication;
+        UINT32 attrs_high = Restricted | Decrypt | Sign | Encrypt;
+        UINT32 attrs_none = 0;
+        //act
+        TPMA_OBJECT obj_all = ToTpmaObject(attrs_all);
+        TPMA_OBJECT obj_low = ToTpmaObject(attrs_low);
+        TPMA_OBJECT obj_high = ToTpmaObject(attrs_high);
+        TPMA_OBJECT obj_none = ToTpmaObject(attrs_none);
+        //assert
+        ASSERT_IS_TRUE(obj_all.fixedTPM);
+        ASSERT_IS_TRUE(obj_all.stClear);
+        ASSERT_IS_TRUE(obj_all.fixedParent);
+        ASSERT_IS_TRUE(obj_all.sensitiveDataOrigin);
+        ASSERT_IS_TRUE(obj_all.userWithAuth);
+        ASSERT_IS_TRUE(obj_all.adminWithPolicy);
+        ASSERT_IS_TRUE(obj_all.noDA);
+        ASSERT_IS_TRUE(obj_all.encryptedDuplication);
+        ASSERT_IS_TRUE(obj_all.restricted);
+        ASSERT_IS_TRUE(obj_all.decrypt);
+        ASSERT_IS_TRUE(obj_all.sign);
+
+        ASSERT_IS_TRUE(obj_low.fixedTPM);
+        ASSERT_IS_TRUE(obj_low.stClear);
+        ASSERT_IS_TRUE(obj_low.fixedParent);
+        ASSERT_IS_TRUE(obj_low.sensitiveDataOrigin);
+        ASSERT_IS_TRUE(obj_low.userWithAuth);
+        ASSERT_IS_TRUE(obj_low.adminWithPolicy);
+        ASSERT_IS_TRUE(obj_low.noDA);
+        ASSERT_IS_TRUE(obj_low.encryptedDuplication);
+        ASSERT_IS_FALSE(obj_low.restricted);
+        ASSERT_IS_FALSE(obj_low.decrypt);
+        ASSERT_IS_FALSE(obj_low.sign);
+
+        ASSERT_IS_FALSE(obj_high.fixedTPM);
+        ASSERT_IS_FALSE(obj_high.stClear);
+        ASSERT_IS_FALSE(obj_high.fixedParent);
+        ASSERT_IS_FALSE(obj_high.sensitiveDataOrigin);
+        ASSERT_IS_FALSE(obj_high.userWithAuth);
+        ASSERT_IS_FALSE(obj_high.adminWithPolicy);
+        ASSERT_IS_FALSE(obj_high.noDA);
+        ASSERT_IS_FALSE(obj_high.encryptedDuplication);
+        ASSERT_IS_TRUE(obj_high.restricted);
+        ASSERT_IS_TRUE(obj_high.decrypt);
+        ASSERT_IS_TRUE(obj_high.sign);
+        
+        ASSERT_IS_FALSE(obj_none.fixedTPM);
+        ASSERT_IS_FALSE(obj_none.stClear);
+        ASSERT_IS_FALSE(obj_none.fixedParent);
+        ASSERT_IS_FALSE(obj_none.sensitiveDataOrigin);
+        ASSERT_IS_FALSE(obj_none.userWithAuth);
+        ASSERT_IS_FALSE(obj_none.adminWithPolicy);
+        ASSERT_IS_FALSE(obj_none.noDA);
+        ASSERT_IS_FALSE(obj_none.encryptedDuplication);
+        ASSERT_IS_FALSE(obj_none.restricted);
+        ASSERT_IS_FALSE(obj_none.decrypt);
+        ASSERT_IS_FALSE(obj_none.sign);
+        //cleanup
+    }
+
 END_TEST_SUITE(tpm_codec_ut)
