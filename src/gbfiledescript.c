@@ -9,11 +9,14 @@
 #ifdef WIN32
 #include <Windows.h>
 #include <basetsd.h>
-#else
-#include <sys/stat.h> 
+#else // WIN32
+#include <sys/stat.h>
 #include <fcntl.h>
+#ifdef __APPLE__
+#include <string.h>
+#endif // __APPLE__
 #include <unistd.h>
-#endif
+#endif // WIN32
 #include "azure_utpm_c/gbfiledescript.h"
 
 ssize_t gbfiledesc_write(int fd, const void* tpm_bytes, size_t count)

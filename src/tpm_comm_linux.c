@@ -6,22 +6,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <errno.h>
-#include <sys/stat.h> 
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <string.h>
+#ifdef WIN32
+#include <Winsock2.h>
+#else // WIN32
+#include <arpa/inet.h>
+#include <unistd.h>
+#endif // WIN32
 
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_utpm_c/gbfiledescript.h"
-
-#ifdef WIN32
-#include <Winsock2.h>
-#else
-#include <arpa/inet.h>
-#include <unistd.h>
-#endif
 
 #include "azure_utpm_c/tpm_comm.h"
 #include "azure_utpm_c/tpm_socket_comm.h"
@@ -57,7 +56,7 @@ typedef struct TPM_COMM_INFO_TAG
 {
     uint32_t            timeout_value;
     TPM_CONN_INFO       conn_info;
-    union 
+    union
     {
         int                 tpm_device;
         TPM_SOCKET_HANDLE   socket_conn;
@@ -170,7 +169,7 @@ static int send_old_um_trm_data(TPM_COMM_HANDLE handle)
     unsigned char debugMsgLevel = 0, commandSent = 1;
     if ((handle->conn_info & TCI_OLD_UM_TRM) == 0)
     {
-        // This is not an old TRM. No additional data are expected. 
+        // This is not an old TRM. No additional data are expected.
         result = 0;
     }
     else if (send_sync_bytes(handle, (const unsigned char*)&debugMsgLevel, 1) != 0)
@@ -255,7 +254,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
     }
     else if (handle->conn_info & TCI_SYS_DEV)
     {
-        // Send to TPM 
+        // Send to TPM
         if (write_data_to_tpm(handle, (const unsigned char*)cmd_bytes, bytes_len) != 0)
         {
             LogError("Failure setting locality to TPM");
