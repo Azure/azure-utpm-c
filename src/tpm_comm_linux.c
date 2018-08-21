@@ -231,7 +231,7 @@ void tpm_comm_destroy(TPM_COMM_HANDLE handle)
         }
         else if (handle->conn_info & TCI_TRM)
         {
-            send_sync_cmd(handle, REMOTE_SESSION_END_CMD);
+            close_simulator(handle);
             tpm_socket_destroy(handle->dev_info.socket_conn);
         }
         free(handle);
@@ -326,8 +326,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
                 else
                 {
                     // check the Ack
-                    uint32_t ack_cmd;
-                    if (read_sync_cmd(handle, &ack_cmd) != 0 || ack_cmd != 0)
+                    if ( !is_ack_ok(handle) )
                     {
                         LogError("Failure reading TRM ack");
                         result = __FAILURE__;

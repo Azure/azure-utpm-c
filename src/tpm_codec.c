@@ -1169,7 +1169,9 @@ TSS_SendCommand(
 //
 TPMA_OBJECT ToTpmaObject(UINT32 attrs)
 {
-    return *(TPMA_OBJECT*)&attrs;
+    TPMA_OBJECT tpma_object;
+    memcpy(&tpma_object, &attrs, sizeof(TPMA_OBJECT));
+    return tpma_object;
 }
 
 //
