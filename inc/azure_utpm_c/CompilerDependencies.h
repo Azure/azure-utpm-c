@@ -13,7 +13,7 @@
 #   undef WIN32
 #endif
 
-// If in-line functions are not being used, define INLINE as null. If 
+// If in-line functions are not being used, define INLINE as null. If
 // INLINE_FUNCTIONS is defined, then need to define INLINE for each compiler.
 #ifndef INLINE_FUNCTIONS
 #   define INLINE
@@ -28,7 +28,7 @@
 #   define REVERSE_ENDIAN_64(_Number) _byteswap_uint64(_Number)
 // Handling of INLINE macro
 #   ifdef INLINE_FUNCTIONS
-#    define INLINE   static __inline 
+#    define INLINE   static __inline
 #   endif
 
 // Avoid compiler warning for in line of stdio (or not)

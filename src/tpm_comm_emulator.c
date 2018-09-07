@@ -113,7 +113,7 @@ static int power_on_simulator(TPM_COMM_INFO* tpm_comm_info)
             LogError("Failure sending remote handshake.");
             result = __FAILURE__;
         }
-        else 
+        else
         {
             uint32_t ack_value;
             if (tpm_socket_read(platform_conn, (unsigned char*)&ack_value, sizeof(uint32_t)) != 0)
@@ -286,7 +286,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
     }
     else
     {
-        // Send to TPM 
+        // Send to TPM
         unsigned char locality = 0;
         if (send_sync_cmd(handle, Remote_SendCommand) != 0)
         {

@@ -138,7 +138,7 @@ MemorySet(
     int              value,
     size_t           size
     )
-{ 
+{
     memset(dest, value, size);
 }
 

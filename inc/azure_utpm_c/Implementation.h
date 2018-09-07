@@ -1277,7 +1277,7 @@ typedef  UINT32             TPM_CC;
 #define  TPM_CC_Vendor_TCG_Test               (TPM_CC)(0x20000000)
 #endif
 
-    
+
 #ifndef  COMPRESSED_LISTS
 #define ADD_FILL    1
 #else
@@ -1406,11 +1406,11 @@ typedef  UINT32             TPM_CC;
     + (ADD_FILL || CC_PolicyAuthorizeNV)          /* 0x00000192 */ \
     + (ADD_FILL || CC_EncryptDecrypt2)            /* 0x00000193 */ \
     )
-    
+
 #define VENDOR_COMMAND_ARRAY_SIZE   ( 0   \
     + CC_Vendor_TCG_Test            \
     )
-    
+
 #define COMMAND_COUNT           \
             (LIBRARY_COMMAND_ARRAY_SIZE + VENDOR_COMMAND_ARRAY_SIZE)
 

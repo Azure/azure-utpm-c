@@ -866,7 +866,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         ASSERT_IS_TRUE(obj_high.restricted);
         ASSERT_IS_TRUE(obj_high.decrypt);
         ASSERT_IS_TRUE(obj_high.sign);
-        
+
         ASSERT_IS_FALSE(obj_none.fixedTPM);
         ASSERT_IS_FALSE(obj_none.stClear);
         ASSERT_IS_FALSE(obj_none.fixedParent);

@@ -21,7 +21,7 @@ static const char* get_tbsi_error_msg(TBS_RESULT tbs_res)
 {
     switch (tbs_res)
     {
-        case TBS_SUCCESS: 
+        case TBS_SUCCESS:
             return "The function was successful";
 
         case TBS_E_BAD_PARAMETER:

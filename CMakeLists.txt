@@ -187,8 +187,8 @@ else()
         utpm
     )
     install(FILES ${utpm_h_files}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_utpm_c) 
-    install(TARGETS ${install_staticlibs} 
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_utpm_c)
+    install(TARGETS ${install_staticlibs}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

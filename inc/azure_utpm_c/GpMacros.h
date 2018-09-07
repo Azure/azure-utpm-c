@@ -28,7 +28,7 @@
 #endif // SELF_TEST
 
 //** For Failures
-#if defined _POSIX_ 
+#if defined _POSIX_
 #   define FUNCTION_NAME        0
 #else
 #   define FUNCTION_NAME        __FUNCTION__
@@ -54,8 +54,8 @@
 #endif
 
 // This macro tests that a condition is TRUE and puts the TPM into failure mode
-// if it is not. If longjmp is being used, then the FAIL(FATAL_ERROR_) macro makes 
-// a call from which there is no return. Otherwise, it returns and the function 
+// if it is not. If longjmp is being used, then the FAIL(FATAL_ERROR_) macro makes
+// a call from which there is no return. Otherwise, it returns and the function
 // will exit with the appropriate return code.
 #define REQUIRE(condition, errorCode, returnCode)       \
     {                                                   \
@@ -80,14 +80,14 @@
 #define PCR_SELECT_MIN          ((PLATFORM_PCR+7)/8)
 #define PCR_SELECT_MAX          ((IMPLEMENTATION_PCR+7)/8)
 #define MAX_ORDERLY_COUNT       ((1 << ORDERLY_BITS) - 1)
-#define PRIVATE_VENDOR_SPECIFIC_BYTES	                        \
+#define PRIVATE_VENDOR_SPECIFIC_BYTES                            \
                 ((MAX_RSA_KEY_BYTES/2) * (3 + CRT_FORMAT_RSA * 2))
 
 //** Compile-time Checks
 // In some cases, the relationship between two values may be dependent
 // on things that change based on various selections like the chosen cryptographic
 // libraries. It is possible that these selections will result in incompatible
-// settings. These are often detectable by the compiler but it isn't always 
+// settings. These are often detectable by the compiler but it isn't always
 // possible to do the check in the preprocessor code. For example, when the
 // check requires use of "sizeof" then the preprocessor can't do the comparison.
 // For these cases, we include a special macro that, depending on the compiler
@@ -100,7 +100,7 @@
 #   define cAssert(value)
 #endif
 
-// This is used commonly in the "Crypt" code as a way to keep listings from 
+// This is used commonly in the "Crypt" code as a way to keep listings from
 // getting too long. This is not to save paper but to allow one to see more
 // useful stuff on the screen at any given time.
 #define     ERROR_RETURN(returnCode)    \

@@ -207,7 +207,7 @@ int main(void)
         result = __LINE__;
     }
     else if (initialize_tpm(&tpm_info) )
-    { 
+    {
         read_key_info(&tpm_info.ek_pub, "Endorsement Key: ");
         read_key_info(&tpm_info.srk_pub, "Storage Root Key: ");
 

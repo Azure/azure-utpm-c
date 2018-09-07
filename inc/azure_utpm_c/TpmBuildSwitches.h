@@ -61,7 +61,7 @@
 #endif
 
 // Enable the instrumentation of the sieve process. This is used to tune the sieve
-// variables. 
+// variables.
 #if !defined RSA_INSTRUMENT && defined RSA_KEY_SIEVE && defined SIMULATION
 //#define RSA_INSTRUMENT
 #endif
@@ -119,25 +119,25 @@
 // In some cases, the relationship between two values may be dependent
 // on things that change based on various selections like the chosen cryptographic
 // libraries. It is possible that these selections will result in incompatible
-// settings. These are often detectable by the compiler but it isn't always 
+// settings. These are often detectable by the compiler but it isn't always
 // possible to do the check in the preprocessor code. For example, when the
 // check requires use of 'sizeof()' then the preprocessor can't do the comparison.
 // For these cases, we include a special macro that, depending on the compiler
 // will generate a warning to indicate if the check always passes or always fails
 // because it involves fixed constants. To run these checks, define COMPILER_CHECKS.
-#ifndef COMPILER_CHECKS 
+#ifndef COMPILER_CHECKS
 //#   define COMPILER_CHECKS
 #endif
 
-// Some of the values (such as sizes) are the result of different options set in 
+// Some of the values (such as sizes) are the result of different options set in
 // Implementation.h. The combination might not be consistent. A function is defined
-// (TpmSizeChecks()) that is used to verify the sizes at run time. To enable the 
+// (TpmSizeChecks()) that is used to verify the sizes at run time. To enable the
 // function, define this parameter.
 #ifndef RUNTIME_SIZE_CHECKS
 #define RUNTIME_SIZE_CHECKS
 #endif
 
-// If doing debug, can set the DRBG to print out the intermediate test values. 
+// If doing debug, can set the DRBG to print out the intermediate test values.
 // Before enabling this, make sure that the dbgDumpMemBlock() function
 // has been added someplace (preferably, somewhere in CryptRand.c)
 #ifndef DRBG_DEBUG_PRINT
