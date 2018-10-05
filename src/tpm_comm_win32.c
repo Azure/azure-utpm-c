@@ -149,7 +149,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
             cmd_bytes, bytes_len, response, resp_len);
         if (tbs_res != TBS_SUCCESS)
         {
-            LogError("Failure sending command to tpm %d.", get_tbsi_error_msg(tbs_res));
+            LogError("Failure sending command to tpm %s.", get_tbsi_error_msg(tbs_res));
             result = __FAILURE__;
         }
         else
