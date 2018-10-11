@@ -302,7 +302,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
             TPM_COMM_HANDLE tpm_handle = tpm_comm_create(TEST_SOCKET_ENDPOINT);
 
             //assert
-            ASSERT_IS_NULL_WITH_MSG(tpm_handle, tmp_msg);
+            ASSERT_IS_NULL(tpm_handle, tmp_msg);
         }
 
         //cleanup
@@ -417,13 +417,10 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
             umock_c_negative_tests_reset();
             umock_c_negative_tests_fail_call(index);
 
-            char tmp_msg[128];
-            sprintf(tmp_msg, "tpm_comm_submit_command failure in test %zu/%zu", index, count);
-
             result = tpm_comm_submit_command(tpm_handle, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, &length);
 
             //assert
-            ASSERT_ARE_NOT_EQUAL_WITH_MSG(int, 0, result, tmp_msg);
+            ASSERT_ARE_NOT_EQUAL(int, 0, result, "tpm_comm_submit_command failure in test %zu/%zu", index, count);
         }
 
         //cleanup

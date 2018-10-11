@@ -235,7 +235,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
             TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
 
             //assert
-            ASSERT_IS_NULL_WITH_MSG(tpm_handle, tmp_msg);
+            ASSERT_IS_NULL(tpm_handle, tmp_msg);
         }
     }
 
