@@ -1,8 +1,6 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-compileAsC99()
-
 set(utpm_sample_c_files
     utpm_sample.c
 )
@@ -21,6 +19,8 @@ include_directories(${DEV_AUTH_MODULES_CLIENT_INC_FOLDER})
 include_directories(${SHARED_UTIL_INC_FOLDER})
 
 add_executable(utpm_sample ${utpm_sample_c_files} ${utpm_sample_h_files})
+
+compileTargetAsC99(utpm_sample)
 
 if(${use_openssl})
     if (WIN32)
