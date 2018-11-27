@@ -70,7 +70,7 @@ dbgDumpMemBlock(const char* label, BYTE* buf, int size)
 #define  ALG_KEYEDHASH         ALG_YES
 #define  ALG_SHA256            ALG_YES
 #define  ALG_SHA384            ALG_YES
-#define  ALG_SHA512            ALG_NO
+#define  ALG_SHA512            ALG_YES
 #define  ALG_SM3_256           ALG_NO
 #define  ALG_SM4               ALG_NO
 #define  ALG_RSASSA            (ALG_YES*ALG_RSA)
