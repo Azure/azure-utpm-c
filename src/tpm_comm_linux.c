@@ -70,7 +70,7 @@ static int write_data_to_tpm(TPM_COMM_INFO* tpm_info, const unsigned char* tpm_b
     if (resp_len != (int)bytes_len)
     {
         LogError("Failure writing data to tpm: %d:%s.", errno, strerror(errno));
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -86,7 +86,7 @@ static int read_data_from_tpm(TPM_COMM_INFO* tpm_info, unsigned char* tpm_bytes,
     if (len_read < MIN_TPM_RESPONSE_LENGTH)
     {
         LogError("Failure reading data from tpm: len: %d - %d:%s.", len_read, errno, strerror(errno));
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -148,12 +148,12 @@ static int tpm_usermode_resmgr_connect(TPM_COMM_INFO* handle)
     if (!(oldTrm || newTrm))
     {
         LogError("Failure: No user mode TRM found.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if ((handle->dev_info.socket_conn = tpm_socket_create(TPM_UM_RM_ADDRESS, TPM_UM_RM_PORT)) == NULL)
     {
         LogError("Failure: connecting to user mode TRM.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -175,12 +175,12 @@ static int send_old_um_trm_data(TPM_COMM_HANDLE handle)
     else if (send_sync_bytes(handle, (const unsigned char*)&debugMsgLevel, 1) != 0)
     {
         LogError("Failure setting debugMsgLevel to TRM");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (send_sync_bytes(handle, (const unsigned char*)&commandSent, 1) != 0)
     {
         LogError("Failure setting commandSent status to TRM");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -250,7 +250,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
     if (handle == NULL || cmd_bytes == NULL || response == NULL || resp_len == NULL)
     {
         LogError("Invalid argument specified handle: %p, cmd_bytes: %p, response: %p, resp_len: %p.", handle, cmd_bytes, response, resp_len);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (handle->conn_info & TCI_SYS_DEV)
     {
@@ -258,14 +258,14 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
         if (write_data_to_tpm(handle, (const unsigned char*)cmd_bytes, bytes_len) != 0)
         {
             LogError("Failure setting locality to TPM");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             if (read_data_from_tpm(handle, response, resp_len) != 0)
             {
                 LogError("Failure reading bytes from tpm");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -279,27 +279,27 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
         if (send_sync_cmd(handle, REMOTE_SEND_COMMAND) != 0)
         {
             LogError("Failure preparing sending Remote Command");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (send_sync_bytes(handle, (const unsigned char*)&locality, 1) != 0)
         {
             LogError("Failure setting locality to TPM");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (send_old_um_trm_data(handle) != 0)
         {
             LogError("Failure communicating with old user mode TPM");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (send_sync_cmd(handle, bytes_len) != 0)
         {
             LogError("Failure writing command bit to tpm");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (send_sync_bytes(handle, cmd_bytes, bytes_len))
         {
             LogError("Failure writing data to tpm");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -308,12 +308,12 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
             if (read_sync_cmd(handle, &length_byte) != 0)
             {
                 LogError("Failure reading length data from tpm");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else if (length_byte > *resp_len)
             {
                 LogError("Bytes read are greater then bytes expected len_bytes:%u expected: %u", length_byte, *resp_len);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -321,7 +321,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
                 if (read_sync_bytes(handle, response, &length_byte) != 0)
                 {
                     LogError("Failure reading bytes");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -329,7 +329,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
                     if ( !is_ack_ok(handle) )
                     {
                         LogError("Failure reading TRM ack");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
@@ -342,7 +342,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
     else
     {
         LogError("Submitting command to an uninitialized TPM_COMM_HANDLE");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     return result;
 }

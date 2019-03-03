@@ -61,7 +61,7 @@ static int add_to_buffer(TPM_SOCKET_INFO* socket_info, const unsigned char* byte
 }
     if (new_buff == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -120,7 +120,7 @@ static int send_socket_bytes(TPM_SOCKET_INFO* socket_info, const unsigned char* 
     if (sent_bytes < (int)byte_len)
     {
         LogError("sent byte amoutn is less than desired send amount.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -137,7 +137,7 @@ static int read_socket_bytes(TPM_SOCKET_INFO* socket_info)
     if (data_len == -1)
     {
         LogError("Failure received bytes timed out.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -152,7 +152,7 @@ static int read_socket_bytes(TPM_SOCKET_INFO* socket_info)
         if (add_to_buffer(socket_info, (const unsigned char*)read_data, data_len) != 0)
         {
             LogError("Failure: adding bytes to buffer.");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -231,12 +231,12 @@ int tpm_socket_read(TPM_SOCKET_HANDLE handle, unsigned char* tpm_bytes, uint32_t
     if (handle == NULL || tpm_bytes == NULL || bytes_len == 0)
     {
         LogError("Invalid argument specified handle: %p, tpm_bytes: %p, bytes_len: %d", handle, tpm_bytes, bytes_len);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
         // Do we have enough bytes cached
-        result = __FAILURE__;
+        result = MU_FAILURE;
         for (size_t index = 0; index < 2; index++)
         {
             if (handle->recv_length >= bytes_len)
@@ -251,7 +251,7 @@ int tpm_socket_read(TPM_SOCKET_HANDLE handle, unsigned char* tpm_bytes, uint32_t
                 if (read_socket_bytes(handle))
                 {
                     LogError("Failure reading socket bytes.");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                     break;
                 }
             }
@@ -266,7 +266,7 @@ int tpm_socket_send(TPM_SOCKET_HANDLE handle, const unsigned char* tpm_bytes, ui
     if (handle == NULL || tpm_bytes == NULL || bytes_len == 0)
     {
         LogError("Invalid argument specified handle: %p, tpm_bytes: %p, bytes_len: %d", handle, tpm_bytes, bytes_len);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

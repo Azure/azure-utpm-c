@@ -140,7 +140,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
     if (handle == NULL || cmd_bytes == NULL || response == NULL || resp_len == NULL)
     {
         LogError("Invalid argument specified handle: %p, cmd_bytes: %p, response: %p, resp_len: %p.", handle, cmd_bytes, response, resp_len);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -150,7 +150,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
         if (tbs_res != TBS_SUCCESS)
         {
             LogError("Failure sending command to tpm %s.", get_tbsi_error_msg(tbs_res));
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
