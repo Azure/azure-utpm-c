@@ -93,26 +93,26 @@ static int load_key(TPM_SAMPLE_INFO* tpm_info, TPM_HANDLE request_handle, TPMI_D
     else if (tpm_result != TPM_RC_HANDLE)
     {
         (void)printf("Failed calling TPM2_ReadPublic 0%x", tpm_result);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
         if (TSS_CreatePrimary(&tpm_info->tpm_device, &NullPwSession, hierarchy, inPub, &tpm_info->tpm_handle, outPub) != TPM_RC_SUCCESS)
         {
             (void)printf("Failed calling TSS_CreatePrimary");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             if (TPM2_EvictControl(&tpm_info->tpm_device, &NullPwSession, TPM_RH_OWNER, tpm_info->tpm_handle, request_handle) != TPM_RC_SUCCESS)
             {
                 (void)printf("Failed calling TSS_CreatePrimary");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else if (TPM2_FlushContext(&tpm_info->tpm_device, tpm_info->tpm_handle) != TPM_RC_SUCCESS)
             {
                 (void)printf("Failed calling TSS_CreatePrimary");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {

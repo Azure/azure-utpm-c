@@ -74,7 +74,7 @@ static TPM2B_PUBLIC tpm_public_value = { 0,   // size will be computed during ma
 { 0 }                           // TPMU_PUBLIC_ID       unique
 } };
 
-DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 static TPM_COMM_HANDLE my_tpm_comm_create(const char* endpoint)
 {
@@ -89,9 +89,7 @@ static void my_tpm_comm_destroy(TPM_COMM_HANDLE handle)
 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
-    char temp_str[256];
-    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
-    ASSERT_FAIL(temp_str);
+    ASSERT_FAIL("umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
 }
 
 static TEST_MUTEX_HANDLE g_testByTest;

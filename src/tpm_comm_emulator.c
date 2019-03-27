@@ -101,7 +101,7 @@ static int power_on_simulator(TPM_COMM_INFO* tpm_comm_info)
     if ((platform_conn = tpm_socket_create(tpm_comm_info->socket_ip, TPM_SIMULATOR_PLATFORM_PORT) ) == NULL)
     {
         LogError("Failure: connecting to tpm simulator platform interface.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -111,7 +111,7 @@ static int power_on_simulator(TPM_COMM_INFO* tpm_comm_info)
         if (tpm_socket_send(platform_conn, (const unsigned char*)&power_on_cmd, sizeof(power_on_cmd) ) != 0)
         {
             LogError("Failure sending remote handshake.");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -119,35 +119,35 @@ static int power_on_simulator(TPM_COMM_INFO* tpm_comm_info)
             if (tpm_socket_read(platform_conn, (unsigned char*)&ack_value, sizeof(uint32_t)) != 0)
             {
                 LogError("Failure sending remote handshake.");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 if (htonl(ack_value) != 0)
                 {
                     LogError("Failure reading cmd sync.");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
                     if (tpm_socket_send(platform_conn, (const unsigned char*)&signal_nv_cmd, sizeof(signal_nv_cmd) ) != 0)
                     {
                         LogError("Failure sending remote handshake.");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
                         if (tpm_socket_read(platform_conn, (unsigned char*)&ack_value, sizeof(uint32_t)) != 0)
                         {
                             LogError("Failure sending remote handshake.");
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                         }
                         else
                         {
                             if (htonl(ack_value) != 0)
                             {
                                 LogError("Failure reading cmd sync.");
-                                result = __FAILURE__;
+                                result = MU_FAILURE;
                             }
                             else
                             {
@@ -174,39 +174,39 @@ static int execute_simulator_setup(TPM_COMM_INFO* tpm_comm_info)
     if (send_sync_cmd(tpm_comm_info, REMOTE_HANDSHAKE_CMD) != 0)
     {
         LogError("Failure sending remote handshake.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     // Send desired protocol version
     else if (send_sync_cmd(tpm_comm_info, tmp_client_version) != 0)
     {
         LogError("Failure sending client version.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (read_sync_cmd(tpm_comm_info, &tmp_server_version) != 0)
     {
         LogError("Failure reading cmd sync.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (tmp_client_version != tmp_server_version)
     {
         LogError("Failure client and server version does not match.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (read_sync_cmd(tpm_comm_info, &tpm_info) != 0)
     {
         LogError("Failure reading cmd sync.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     // GetAck
     else if (!is_ack_ok(tpm_comm_info))
     {
         LogError("Failure ack byte from tpm is invalid.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (power_on_simulator(tpm_comm_info) != 0)
     {
         LogError("Failure powering on simulator.");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -282,7 +282,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
     if (handle == NULL || cmd_bytes == NULL || response == NULL || resp_len == NULL)
     {
         LogError("Invalid argument specified handle: %p, cmd_bytes: %p, response: %p, resp_len: %p.", handle, cmd_bytes, response, resp_len);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -291,22 +291,22 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
         if (send_sync_cmd(handle, Remote_SendCommand) != 0)
         {
             LogError("Failure preparing sending Remote Command");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (send_sync_bytes(handle, (const unsigned char*)&locality, 1) != 0)
         {
             LogError("Failure setting locality to TPM");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (send_sync_cmd(handle, bytes_len) != 0)
         {
             LogError("Failure writing command bit to tpm");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (send_sync_bytes(handle, cmd_bytes, bytes_len))
         {
             LogError("Failure writing data to tpm");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -315,12 +315,12 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
             if (read_sync_cmd(handle, &length_byte) != 0)
             {
                 LogError("Failure reading length data from tpm");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else if (length_byte > *resp_len)
             {
                 LogError("Bytes read are greater then bytes expected len_bytes:%u expected: %u", length_byte, *resp_len);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -328,7 +328,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
                 if (read_sync_bytes(handle, response, &length_byte) != 0)
                 {
                     LogError("Failure reading bytes");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -337,7 +337,7 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
                     if (read_sync_cmd(handle, &ack_cmd) != 0 || ack_cmd != 0)
                     {
                         LogError("Failure reading tpm ack");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
