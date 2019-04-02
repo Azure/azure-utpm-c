@@ -255,3 +255,6 @@ paket-files/
 
 *.cert
 /tools/tpm_simulator/NVChip
+/deps/ctest/
+/deps/testrunnerswitcher/
+/deps/umock-c/

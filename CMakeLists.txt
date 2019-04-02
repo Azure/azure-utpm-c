@@ -7,12 +7,10 @@ project(utpm)
 
 set(UTPM_VERSION 1.0.1)
 
-# Include the common build rules for the C SDK
-include(deps/c-utility/configs/azure_iot_build_rules.cmake)
-
 option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
+option(run_int_tests "set run_int_tests to ON to integration tests (default is OFF)." OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(use_custom_heap "use externally defined heap functions instead of the malloc family" OFF)
@@ -23,27 +21,61 @@ endif()
 
 #do not add or build any tests of the dependencies
 set(original_run_e2e_tests ${run_e2e_tests})
+set(original_run_int_tests ${run_int_tests})
 set(original_run_unittests ${run_unittests})
+set(original_skip_samples ${skip_samples})
 
 set(run_e2e_tests OFF)
+set(run_int_tests OFF)
 set(run_unittests OFF)
+set(skip_samples ON)
 
-add_subdirectory(./deps/c-utility EXCLUDE_FROM_ALL)
+if(NOT ${use_installed_dependencies})
+    if (NOT TARGET azure_macro_utils_c AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/azure-macro-utils-c/CMakeLists.txt")
+        add_subdirectory(deps/azure-macro-utils-c)
+        include_directories(${MACRO_UTILS_INC_FOLDER})
+    endif()
+    if(${original_run_e2e_tests} OR ${original_run_unittests})
+        if (NOT TARGET testrunnerswitcher)
+            # Get the repo if it's not there
+            if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/testrunnerswitcher/CMakeLists.txt")
+                execute_process(COMMAND git clone https://github.com/Azure/azure-c-testrunnerswitcher.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/testrunnerswitcher)
+            endif()
+            add_subdirectory(deps/testrunnerswitcher)
+        endif()
+        if (NOT TARGET ctest)
+            # Get the repo if it's not there
+            if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/ctest/CMakeLists.txt")
+                execute_process(COMMAND git clone https://github.com/Azure/azure-ctest.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/ctest)
+            endif()
+            add_subdirectory(deps/ctest)
+        endif()
+        if (NOT TARGET umock_c)
+            # Get the repo if it's not there
+            if (NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/umock-c/CMakeLists.txt")
+                execute_process(COMMAND git clone https://github.com/Azure/umock-c.git -q ${CMAKE_CURRENT_LIST_DIR}/deps/umock-c)
+            endif()
+            add_subdirectory(deps/umock-c)
+        endif()
+    endif()
+    if (NOT TARGET aziotsharedutil AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/c-utility/CMakeLists.txt")
+        add_subdirectory(deps/c-utility)
+        include_directories(${SHARED_UTIL_INC_FOLDER})
+    endif()
 
-if (${original_run_e2e_tests} OR ${original_run_unittests})
-    add_subdirectory(./deps/c-utility/testtools)
+    enable_testing()
 endif()
 
 set(run_e2e_tests ${original_run_e2e_tests})
+set(run_int_tests ${original_run_int_tests})
 set(run_unittests ${original_run_unittests})
-
-enable_testing()
+set(skip_samples ${original_skip_samples})
 
 set(TPM_C_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using sharedLib lib" FORCE)
 
-set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/c-utility)
+set_platform_files(${SHARED_UTIL_FOLDER})
 
-if(NOT MSVC)
+if (NOT MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-field-initializers ")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers ")
 endif()
@@ -116,19 +148,18 @@ else()
 endif()
 
 include_directories(./inc)
-include_directories(${SHARED_UTIL_INC_FOLDER})
 
-IF(WIN32)
+if (WIN32)
     #windows needs this define
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
-ENDIF(WIN32)
+endif (WIN32)
 
 add_library(utpm ${utpm_c_files} ${utpm_h_files})
 target_link_libraries(utpm aziotsharedutil)
 
 if (${use_emulator})
-else()
+else ()
     if (WIN32)
         target_link_libraries(utpm tbs)
     endif()
