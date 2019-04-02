@@ -1164,7 +1164,7 @@ typedef union {
 #endif   // TPM_ALG_CAMELLIA
     TPM_KEY_BITS              sym;
 #ifdef      TPM_ALG_XOR
-    TPMI_ALG_HASH             xor;
+    TPMI_ALG_HASH             alg_xor;
 #endif   // TPM_ALG_XOR
 } TPMU_SYM_KEY_BITS;
 
@@ -1293,7 +1293,7 @@ typedef union {
     TPMS_SCHEME_HMAC        hmac;
 #endif   // TPM_ALG_HMAC
 #ifdef      TPM_ALG_XOR
-    TPMS_SCHEME_XOR         xor;
+    TPMS_SCHEME_XOR         alg_xor;
 #endif   // TPM_ALG_XOR
 } TPMU_SCHEME_KEYEDHASH;
 
