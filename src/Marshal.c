@@ -2800,7 +2800,7 @@ TPMU_SYM_KEY_BITS_Unmarshal(TPMU_SYM_KEY_BITS *target, BYTE **buffer, INT32 *siz
 #endif // ALG_CAMELLIA
 #if         ALG_XOR
         case TPM_ALG_XOR:
-            return TPMI_ALG_HASH_Unmarshal((TPMI_ALG_HASH *)&(target->xor), buffer, size, 0);
+            return TPMI_ALG_HASH_Unmarshal((TPMI_ALG_HASH *)&(target->alg_xor), buffer, size, 0);
 #endif // ALG_XOR
         case TPM_ALG_NULL:
             return TPM_RC_SUCCESS;
@@ -2830,7 +2830,7 @@ TPMU_SYM_KEY_BITS_Marshal(TPMU_SYM_KEY_BITS *source, BYTE **buffer, INT32 *size,
 #endif // ALG_CAMELLIA
 #if         ALG_XOR
         case TPM_ALG_XOR:
-            return TPMI_ALG_HASH_Marshal((TPMI_ALG_HASH *)&(source->xor), buffer, size);
+            return TPMI_ALG_HASH_Marshal((TPMI_ALG_HASH *)&(source->alg_xor), buffer, size);
 #endif // ALG_XOR
         case TPM_ALG_NULL:
             return 0;
@@ -3246,7 +3246,7 @@ TPMU_SCHEME_KEYEDHASH_Unmarshal(TPMU_SCHEME_KEYEDHASH *target, BYTE **buffer, IN
 #endif // ALG_HMAC
 #if         ALG_XOR
         case TPM_ALG_XOR:
-            return TPMS_SCHEME_XOR_Unmarshal((TPMS_SCHEME_XOR *)&(target->xor), buffer, size);
+            return TPMS_SCHEME_XOR_Unmarshal((TPMS_SCHEME_XOR *)&(target->alg_xor), buffer, size);
 #endif // ALG_XOR
         case TPM_ALG_NULL:
             return TPM_RC_SUCCESS;
@@ -3264,7 +3264,7 @@ TPMU_SCHEME_KEYEDHASH_Marshal(TPMU_SCHEME_KEYEDHASH *source, BYTE **buffer, INT3
 #endif // ALG_HMAC
 #if         ALG_XOR
         case TPM_ALG_XOR:
-            return TPMS_SCHEME_XOR_Marshal((TPMS_SCHEME_XOR *)&(source->xor), buffer, size);
+            return TPMS_SCHEME_XOR_Marshal((TPMS_SCHEME_XOR *)&(source->alg_xor), buffer, size);
 #endif // ALG_XOR
         case TPM_ALG_NULL:
             return 0;
