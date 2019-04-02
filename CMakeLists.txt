@@ -7,12 +7,10 @@ project(utpm)
 
 set(UTPM_VERSION 1.0.1)
 
-# Include the common build rules for the C SDK
-#include(deps/c-utility/configs/azure_iot_build_rules.cmake)
-
 option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
+option(run_int_tests "set run_int_tests to ON to integration tests (default is OFF)." OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(use_custom_heap "use externally defined heap functions instead of the malloc family" OFF)
@@ -33,7 +31,7 @@ set(run_unittests OFF)
 set(skip_samples ON)
 
 if(NOT ${use_installed_dependencies})
-    if (NOT TARGET azure_macro_utils_c)
+    if (NOT TARGET azure_macro_utils_c AND EXISTS "${CMAKE_CURRENT_LIST_DIR}/deps/azure-macro-utils-c/CMakeLists.txt")
         add_subdirectory(deps/azure-macro-utils-c)
         include_directories(${MACRO_UTILS_INC_FOLDER})
     endif()
