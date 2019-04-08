@@ -32,7 +32,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
 #include "umocktypes_charptr.h"
 #include "umocktypes_stdint.h"
 #include "umock_c_negative_tests.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 
 #define ENABLE_MOCKS
 #include "azure_c_shared_utility/gballoc.h"
