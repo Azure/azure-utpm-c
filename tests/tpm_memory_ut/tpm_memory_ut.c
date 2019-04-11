@@ -28,15 +28,15 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
     return realloc(ptr, size);
 }
 
-#include "umock_c.h"
-#include "umocktypes_charptr.h"
-#include "umocktypes_stdint.h"
-#include "umock_c_negative_tests.h"
+#include "umock_c/umock_c.h"
+#include "umock_c/umocktypes_charptr.h"
+#include "umock_c/umocktypes_stdint.h"
+#include "umock_c/umock_c_negative_tests.h"
 #include "azure_macro_utils/macro_utils.h"
 
 #define ENABLE_MOCKS
 #include "azure_c_shared_utility/gballoc.h"
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/Memory_fp.h"
@@ -53,10 +53,6 @@ extern "C"
 #define BUFFER_LENGTH       10
 
 MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
-
-//TEST_DEFINE_ENUM_TYPE(TPM_COMM_TYPE, TPM_COMM_TYPE_VALUES);
-//IMPLEMENT_UMOCK_C_ENUM_TYPE(TPM_COMM_TYPE, TPM_COMM_TYPE_VALUES);
-
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
     ASSERT_FAIL("umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
