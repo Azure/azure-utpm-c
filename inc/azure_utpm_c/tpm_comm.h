@@ -13,7 +13,7 @@ extern "C" {
 #include <stdint.h>
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
 #define TPM_COMM_TYPE_VALUES    \
     TPM_COMM_TYPE_EMULATOR,     \

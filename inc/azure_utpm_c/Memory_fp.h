@@ -4,7 +4,7 @@
 #ifndef    _MEMORY_FP_H_
 #define    _MEMORY_FP_H_
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 #include "azure_utpm_c/BaseTypes.h"
 #include "azure_utpm_c/TPMB.h"
 

@@ -22,17 +22,17 @@ static void my_gballoc_free(void* ptr)
 }
 
 #include "testrunnerswitcher.h"
-#include "umock_c.h"
-#include "umocktypes_charptr.h"
-#include "umocktypes_stdint.h"
-#include "umock_c_negative_tests.h"
+#include "umock_c/umock_c.h"
+#include "umock_c/umocktypes_charptr.h"
+#include "umock_c/umocktypes_stdint.h"
+#include "umock_c/umock_c_negative_tests.h"
 #include "azure_macro_utils/macro_utils.h"
 
 #define ENABLE_MOCKS
 #include "azure_c_shared_utility/gballoc.h"
 #include <windows.h>
 #include <tbs.h>
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
 MOCKABLE_FUNCTION(WINAPI, TBS_RESULT, Tbsi_Context_Create, PCTBS_CONTEXT_PARAMS, pContextParams, PTBS_HCONTEXT, phContext);
 MOCKABLE_FUNCTION(WINAPI, TBS_RESULT, Tbsi_GetDeviceInfo, uint32_t, size, PVOID, info);
