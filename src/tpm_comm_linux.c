@@ -174,6 +174,15 @@ static void close_simulator(TPM_COMM_INFO* tpm_comm_info)
     (void)send_sync_cmd(tpm_comm_info, REMOTE_SESSION_END_CMD);
 }
 
+static void write_tcti_info(const TCTI_PROV_INFO *tcti_info)
+{
+    uint32_t ver = tcti_info->version;
+    printf("TCTI name: %s\n", tcti_info->name);
+    printf("TCTI version: %u.%u.%u.%u\n", ver & 0xFF, (ver >> 8) & 0xFF, (ver >> 16) & 0xFF, ver >> 24);
+    printf("TCTI descr: %s\n", tcti_info->descr);
+    printf("TCTI config help: %s\n", tcti_info->help);
+}
+
 static void* load_abrmd(void** dylib)
 {
     void* tcti_ctx = NULL;
@@ -201,13 +210,6 @@ static void* load_abrmd(void** dylib)
     }
 
     tcti_info = get_tcti_info();
-#if 0
-    uint32_t ver = tcti_info->version;
-    printf("TCTI name: %s\n", tcti_info->name);
-    printf("TCTI version: %u.%u.%u.%u\n", ver & 0xFF, (ver >> 8) & 0xFF, (ver >> 16) & 0xFF, ver >> 24);
-    printf("TCTI descr: %s\n", tcti_info->descr);
-    printf("TCTI config help: %s\n", tcti_info->help);
-#endif
 
     rc = tcti_info->init(NULL, &size, NULL);
     if (rc != RC_SUCCESS) {
@@ -229,6 +231,7 @@ static void* load_abrmd(void** dylib)
     rc = tcti_info->init(tcti_ctx, &size, NULL);
     if (rc != RC_SUCCESS)
     {
+        free(tcti_ctx);
         LogError("Tss2_Tcti_Info(ctx, ...) in %s failed", abrmd_name);
         goto err;
     }
