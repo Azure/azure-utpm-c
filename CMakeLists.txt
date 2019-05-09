@@ -151,6 +151,8 @@ if (${use_emulator})
 else ()
     if (WIN32)
         target_link_libraries(utpm tbs)
+    else()
+        target_link_libraries(utpm dl)
     endif()
 endif()
 

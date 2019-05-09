@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <string.h>
+#include <dlfcn.h>
 #ifdef WIN32
 #include <Winsock2.h>
 #else // WIN32
@@ -28,6 +29,8 @@
 static const char* const TPM_DEVICE_NAME = "/dev/tpm0";
 static const char* const TPM_RM_DEVICE_NAME = "/dev/tpmrm0";
 
+static const char* const TPM_TABRMD_USERMODE_RESOURCE_MGR = "libtss2-tcti-tabrmd.so";
+static const char* const TPM_ABRMD_USERMODE_RESOURCE_MGR = "libtss2-tcti-abrmd.so";
 static const char* const TPM_OLD_USERMODE_RESOURCE_MGR_64 = "/usr/lib/x86_64-linux-gnu/libtctisocket.so.0";
 static const char* const TPM_OLD_USERMODE_RESOURCE_MGR_32 = "/usr/lib/i386-linux-gnu/libtctisocket.so.0";
 static const char* const TPM_OLD_USERMODE_RESOURCE_MGR_ARM = "/usr/lib/arm-linux-gnueabihf/libtctisocket.so.0";
@@ -48,20 +51,55 @@ typedef enum
 {
     TCI_NONE = 0,
     TCI_SYS_DEV = 1,
-    TCI_TRM = 2,
+    TCI_SOCKET = 2,
     TCI_OLD_UM_TRM = 4,
+    TCI_TCTI = 8,
+    TCI_TRM = 0x10
 } TPM_CONN_INFO;
 
 typedef struct TPM_COMM_INFO_TAG
 {
-    uint32_t            timeout_value;
-    TPM_CONN_INFO       conn_info;
+    uint32_t        timeout_value;
+    TPM_CONN_INFO   conn_info;
     union
     {
         int                 tpm_device;
         TPM_SOCKET_HANDLE   socket_conn;
+        struct {
+            void*   ctx_handle;
+            void*   dylib;
+        }                   tcti;
     } dev_info;
 } TPM_COMM_INFO;
+
+typedef uint32_t TCTI_RC;
+
+#define RC_SUCCESS     0
+
+typedef void* TCTI_HANDLE;
+
+typedef uint32_t (*tcti_init_fn)(TCTI_HANDLE *ctx_handle, size_t *size, const char *cfg);
+
+typedef struct {
+    uint32_t version;
+    const char *name;
+    const char *descr;
+    const char *help;
+    tcti_init_fn init;
+} TCTI_PROV_INFO;
+
+typedef const TCTI_PROV_INFO* (*get_tcti_info_fn)(void);
+
+typedef struct {
+    uint64_t magic;
+    uint32_t version;
+    TCTI_RC (*transmit) (TCTI_HANDLE *h, size_t cmd_size, uint8_t const *command);
+    TCTI_RC (*receive) (TCTI_HANDLE *h, size_t *resp_size, uint8_t *response, int32_t timeout);
+    void (*finalize) (TCTI_HANDLE *h);
+    TCTI_RC (*cancel) (TCTI_HANDLE *h);
+    TCTI_RC (*getPollHandles) (TCTI_HANDLE *h, void* handles, size_t *num_handles);
+    TCTI_RC (*setLocality) (TCTI_HANDLE *h, uint8_t locality);
+} TCTI_CTX;
 
 static int write_data_to_tpm(TPM_COMM_INFO* tpm_info, const unsigned char* tpm_bytes, uint32_t bytes_len)
 {
@@ -136,29 +174,110 @@ static void close_simulator(TPM_COMM_INFO* tpm_comm_info)
     (void)send_sync_cmd(tpm_comm_info, REMOTE_SESSION_END_CMD);
 }
 
+static void write_tcti_info(const TCTI_PROV_INFO *tcti_info)
+{
+    uint32_t ver = tcti_info->version;
+    printf("TCTI name: %s\n", tcti_info->name);
+    printf("TCTI version: %u.%u.%u.%u\n", ver & 0xFF, (ver >> 8) & 0xFF, (ver >> 16) & 0xFF, ver >> 24);
+    printf("TCTI descr: %s\n", tcti_info->descr);
+    printf("TCTI config help: %s\n", tcti_info->help);
+}
+
+static void* load_abrmd(void** dylib)
+{
+    void* tcti_ctx = NULL;
+    const TCTI_PROV_INFO *tcti_info;
+    const char* abrmd_name = TPM_TABRMD_USERMODE_RESOURCE_MGR;
+    size_t size = 0;
+    TCTI_RC rc = 0;
+
+    *dylib = dlopen (abrmd_name, RTLD_LAZY);
+    if (!*dylib)
+    {
+        abrmd_name = TPM_ABRMD_USERMODE_RESOURCE_MGR;
+        *dylib = dlopen (abrmd_name, RTLD_LAZY);
+        if (!*dylib)
+        {
+            return NULL;
+        }
+    }
+
+    get_tcti_info_fn get_tcti_info = (get_tcti_info_fn)dlsym(*dylib, "Tss2_Tcti_Info");
+    if (!get_tcti_info)
+    {
+        LogError("No Tss2_Tcti_Info() entry point found in %s\n", abrmd_name);
+        goto err;
+    }
+
+    tcti_info = get_tcti_info();
+
+    rc = tcti_info->init(NULL, &size, NULL);
+    if (rc != RC_SUCCESS) {
+        LogError("tcti_init(NULL, ...) in %s failed", abrmd_name);
+        goto err;
+    }
+    if (size < sizeof(TCTI_CTX)) {
+        LogError("TCTI context size reported by tcti_init() in %s is too small: %lu < %lu", abrmd_name, size, sizeof(TCTI_CTX));
+        goto err;
+    }
+
+    tcti_ctx = (TCTI_HANDLE*)malloc(size);
+    if (!tcti_ctx)
+    {
+        LogError("load_abrmd(): malloc failed\n");
+        goto err;
+    }
+
+    rc = tcti_info->init(tcti_ctx, &size, NULL);
+    if (rc != RC_SUCCESS)
+    {
+        free(tcti_ctx);
+        LogError("Tss2_Tcti_Info(ctx, ...) in %s failed", abrmd_name);
+        goto err;
+    }
+
+    return tcti_ctx;
+
+err:
+    dlclose(*dylib);
+    *dylib = NULL;
+    return NULL;
+}
+
 static int tpm_usermode_resmgr_connect(TPM_COMM_INFO* handle)
 {
     bool result;
-    bool oldTrm = access(TPM_OLD_USERMODE_RESOURCE_MGR_64, F_OK) != -1
-               || access(TPM_OLD_USERMODE_RESOURCE_MGR_32, F_OK) != -1
-               || access(TPM_OLD_USERMODE_RESOURCE_MGR_ARM, F_OK) != -1;
-    bool newTrm = access(TPM_NEW_USERMODE_RESOURCE_MGR_64, F_OK) != -1
-               || access(TPM_NEW_USERMODE_RESOURCE_MGR_32, F_OK) != -1
-               || access(TPM_NEW_USERMODE_RESOURCE_MGR_ARM, F_OK) != -1;
-    if (!(oldTrm || newTrm))
-    {
-        LogError("Failure: No user mode TRM found.");
-        result = MU_FAILURE;
-    }
-    else if ((handle->dev_info.socket_conn = tpm_socket_create(TPM_UM_RM_ADDRESS, TPM_UM_RM_PORT)) == NULL)
-    {
-        LogError("Failure: connecting to user mode TRM.");
-        result = MU_FAILURE;
+    bool oldTrm, newTrm;
+
+    // First check the presence of the latest user mode TRM variety
+    handle->dev_info.tcti.ctx_handle = load_abrmd(&handle->dev_info.tcti.dylib);
+    if (handle->dev_info.tcti.ctx_handle) {
+        handle->conn_info = TCI_TCTI | TCI_TRM;
+        result = 0;
     }
     else
     {
-        handle->conn_info = TCI_TRM | (oldTrm ? TCI_OLD_UM_TRM : 0);
-        result = 0;
+        oldTrm = access(TPM_OLD_USERMODE_RESOURCE_MGR_64, F_OK) != -1
+                   || access(TPM_OLD_USERMODE_RESOURCE_MGR_32, F_OK) != -1
+                   || access(TPM_OLD_USERMODE_RESOURCE_MGR_ARM, F_OK) != -1;
+        newTrm = access(TPM_NEW_USERMODE_RESOURCE_MGR_64, F_OK) != -1
+                   || access(TPM_NEW_USERMODE_RESOURCE_MGR_32, F_OK) != -1
+                   || access(TPM_NEW_USERMODE_RESOURCE_MGR_ARM, F_OK) != -1;
+        if (!(oldTrm || newTrm))
+        {
+            LogError("Failure: No user mode TRM found.");
+            result = MU_FAILURE;
+        }
+        else if ((handle->dev_info.socket_conn = tpm_socket_create(TPM_UM_RM_ADDRESS, TPM_UM_RM_PORT)) == NULL)
+        {
+            LogError("Failure: connecting to user mode TRM.");
+            result = MU_FAILURE;
+        }
+        else
+        {
+            handle->conn_info = TCI_SOCKET | (oldTrm ? TCI_OLD_UM_TRM : TCI_TRM);
+            result = 0;
+        }
     }
     return result;
 }
@@ -229,10 +348,16 @@ void tpm_comm_destroy(TPM_COMM_HANDLE handle)
         {
             (void)close(handle->dev_info.tpm_device);
         }
-        else if (handle->conn_info & TCI_TRM)
+        else if (handle->conn_info & TCI_SOCKET)
         {
             close_simulator(handle);
             tpm_socket_destroy(handle->dev_info.socket_conn);
+        }
+        else if (handle->conn_info & TCI_TCTI)
+        {
+            TCTI_CTX *tcti_ctx = (TCTI_CTX*)handle->dev_info.tcti.ctx_handle;
+            tcti_ctx->finalize(handle->dev_info.tcti.ctx_handle);
+            dlclose(handle->dev_info.tcti.dylib);
         }
         free(handle);
     }
@@ -250,6 +375,11 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
     if (handle == NULL || cmd_bytes == NULL || response == NULL || resp_len == NULL)
     {
         LogError("Invalid argument specified handle: %p, cmd_bytes: %p, response: %p, resp_len: %p.", handle, cmd_bytes, response, resp_len);
+        result = MU_FAILURE;
+    }
+    else if (*resp_len < 10)
+    {
+        LogError("Response buffer must be at least 10 bytes long %d", *resp_len);
         result = MU_FAILURE;
     }
     else if (handle->conn_info & TCI_SYS_DEV)
@@ -273,7 +403,37 @@ int tpm_comm_submit_command(TPM_COMM_HANDLE handle, const unsigned char* cmd_byt
             }
         }
     }
-    else if (handle->conn_info & TCI_TRM)
+    else if (handle->conn_info & TCI_TCTI)
+    {
+        void* ctx_handle = handle->dev_info.tcti.ctx_handle;
+        TCTI_CTX *tcti_ctx = (TCTI_CTX*)ctx_handle;
+        uint32_t rc = tcti_ctx->transmit(ctx_handle, bytes_len, cmd_bytes);
+        if (rc != 0)
+        {
+            LogError("TCTI_CTX::transmit() failed: 0x%08X\n", rc);
+            result = MU_FAILURE;
+        }
+        else
+        {
+            size_t  bytes_returned = *resp_len;
+            // abrmd has a bug of not setting the returned size when the TPM command fails.
+            // So we have to look into that actual TPM response buffer.
+            memset(response, 0, 10);
+            rc = tcti_ctx->receive(ctx_handle, &bytes_returned, response, 5 * 60 * 1000);
+            if (rc == 0)
+            {
+                uint32_t tpm_response_size = ntohl(*((uint32_t*)(response + 2)));
+                *resp_len = tpm_response_size < bytes_returned ? tpm_response_size : (uint32_t)bytes_returned;
+                result = 0;
+            }
+            else
+            {
+                LogError("TCTI_CTX::receive() failed: 0x%08X\n", rc);
+                result = MU_FAILURE;
+            }
+        }
+    }
+    else if (handle->conn_info & TCI_SOCKET)
     {
         unsigned char locality = 0;
         if (send_sync_cmd(handle, REMOTE_SEND_COMMAND) != 0)

@@ -33,6 +33,10 @@ static void my_gballoc_free(void* ptr)
 #include "azure_utpm_c/gbfiledescript.h"
 #include "umock_c/umock_c_prod.h"
 #include "azure_utpm_c/tpm_socket_comm.h"
+
+MOCKABLE_FUNCTION(, void*, dlopen, const char *, filename, int, flag);
+MOCKABLE_FUNCTION(, void*, dlsym, void*, handle, const char*, symbol);
+MOCKABLE_FUNCTION(, int, dlclose, void*, handle);
 #undef ENABLE_MOCKS
 
 #include "azure_utpm_c/tpm_comm.h"
@@ -45,14 +49,54 @@ extern "C"
 }
 #endif
 
+typedef uint32_t (*my_tcti_init_fn)(void*ctx_handle, size_t* size, const char*cfg);
+
+typedef struct {
+    uint32_t version;
+    const char *name;
+    const char *descr;
+    const char *help;
+    my_tcti_init_fn init;
+} MY_TCTI_PROV_INFO;
+
+static MY_TCTI_PROV_INFO g_tcti_info;
+
+static uint32_t Tss2_Tcti_Tbs_Init(void* tctiContext, size_t* size, const char* conf)
+{
+    (void)tctiContext;
+    (void)size;
+    (void)conf;
+
+    *size = 65;
+    return 0;
+}
+
+static const void* test_tcti_function(void)
+{
+    return &g_tcti_info;
+}
+
 static const unsigned char* TEMP_TPM_COMMAND = (const unsigned char*)0x00012345;
 #define TEMP_CMD_LENGTH         128
 static int TEST_FD_VALUE = 11;
+static void* TEST_SYMBOL_HANDLE = (void*)0x123344;
 
 MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
     ASSERT_FAIL("umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+}
+
+static void* my_dlopen(const char* filename, int flag)
+{
+    (void)filename;
+    (void)flag;
+    return my_gballoc_malloc(1);
+}
+
+static int my_dlclose(void* handle)
+{
+    my_gballoc_free(handle);
 }
 
 static TPM_SOCKET_HANDLE my_tpm_socket_create(const char* address, unsigned short port)
@@ -80,6 +124,8 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
 
         (void)umock_c_init(on_umock_c_error);
 
+        g_tcti_info.init = Tss2_Tcti_Tbs_Init;
+
         result = umocktypes_charptr_register_types();
         ASSERT_ARE_EQUAL(int, 0, result);
         result = umocktypes_stdint_register_types();
@@ -92,6 +138,10 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
+
+        REGISTER_GLOBAL_MOCK_HOOK(dlopen, my_dlopen);
+        REGISTER_GLOBAL_MOCK_RETURN(dlsym, test_tcti_function);
+        REGISTER_GLOBAL_MOCK_HOOK(dlclose, my_dlclose);
 
         REGISTER_GLOBAL_MOCK_RETURN(gbfiledesc_open, TEST_FD_VALUE);
         REGISTER_GLOBAL_MOCK_RETURN(gbfiledesc_close, 0);
@@ -143,6 +193,21 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         return result;
     }
 
+    static void setup_load_abrmd(bool use_abrmd)
+    {
+        if (!use_abrmd)
+        {
+            STRICT_EXPECTED_CALL(dlopen(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(NULL);
+            STRICT_EXPECTED_CALL(dlopen(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(NULL);
+        }
+        else
+        {
+            STRICT_EXPECTED_CALL(dlsym(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+            STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+            STRICT_EXPECTED_CALL(dlclose(IGNORED_PTR_ARG));
+        }
+    }
+
     TEST_FUNCTION(tpm_comm_create_tpm_res_mgr_succeed)
     {
         //arrange
@@ -184,6 +249,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        setup_load_abrmd(false);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
@@ -207,6 +273,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        setup_load_abrmd(false);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
@@ -231,6 +298,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        setup_load_abrmd(false);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
@@ -255,6 +323,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        setup_load_abrmd(false);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
@@ -278,6 +347,7 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        setup_load_abrmd(false);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
         STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
