@@ -174,7 +174,7 @@ static void close_simulator(TPM_COMM_INFO* tpm_comm_info)
     (void)send_sync_cmd(tpm_comm_info, REMOTE_SESSION_END_CMD);
 }
 
-static void write_tcti_info(const TCTI_PROV_INFO *tcti_info)
+void write_tcti_info(const TCTI_PROV_INFO *tcti_info)
 {
     uint32_t ver = tcti_info->version;
     printf("TCTI name: %s\n", tcti_info->name);
