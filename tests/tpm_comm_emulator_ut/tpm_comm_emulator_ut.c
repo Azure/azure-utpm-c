@@ -11,8 +11,6 @@
 #include <stddef.h>
 #endif
 
-#include "testrunnerswitcher.h"
-
 #undef DECLSPEC_IMPORT
 #pragma warning(disable: 4273)
 #ifdef WIN32
@@ -38,6 +36,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
     return realloc(ptr, size);
 }
 
+#include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
 #include "umock_c/umocktypes_stdint.h"
