@@ -212,6 +212,16 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
+export(EXPORT utpmTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Targets.cmake"
+  )
+
+
+configure_file(config/utpmConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
+  COPYONLY
+  )
+
 install(EXPORT utpmTargets
     FILE
 	"${PROJECT_NAME}Targets.cmake"
@@ -220,7 +230,8 @@ install(EXPORT utpmTargets
 )
 
 install(
-    FILES
+  FILES
+        config/utpmConfig.cmake
 	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION
 	${package_location}
