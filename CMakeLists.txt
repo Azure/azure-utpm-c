@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 2.8.11)
 project(utpm)
 
 set(UTPM_VERSION 1.0.1)
+string(REPLACE "." ";" VERSION_LIST ${UTPM_VERSION})
+list(GET VERSION_LIST 0 UTPM_VERSION_MAJOR)
 
 option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
@@ -162,6 +164,9 @@ if (WIN32)
 endif (WIN32)
 
 add_library(utpm ${utpm_c_files} ${utpm_h_files})
+set_target_properties(utpm PROPERTIES
+  VERSION ${UTPM_VERSION}
+  SOVERSION ${UTPM_VERSION_MAJOR})
 target_link_libraries(utpm aziotsharedutil)
 
 if (${use_emulator})
