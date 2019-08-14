@@ -185,7 +185,7 @@ endif()
 include(GNUInstallDirs)
 
 # Install utpm
-set(package_location "cmake")
+set(package_location "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR "lib")
@@ -194,7 +194,7 @@ endif()
 install(TARGETS utpm EXPORT utpmTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
 )
 install(FILES ${utpm_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_utpm_c)
