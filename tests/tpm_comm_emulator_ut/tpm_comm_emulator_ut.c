@@ -136,7 +136,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_HANDLE, void*);
         REGISTER_UMOCK_ALIAS_TYPE(TPM_SOCKET_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(htonl_type, unsigned short);
+        REGISTER_UMOCK_ALIAS_TYPE(htonl_type, unsigned long);
 
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
