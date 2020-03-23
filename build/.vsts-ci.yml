@@ -53,7 +53,7 @@ phases:
 - phase: raspberrypi
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/raspberrypi-c"
-  queue: Hosted Ubuntu 1604
+  queue: aziotbld-lin01
   displayName: raspberrypi
   steps:
   - script: |
