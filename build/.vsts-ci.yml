@@ -4,9 +4,9 @@ variables:
 resources:
 - repo: self
   clean: true
-phases:
-- phase: checksubmodule  
-  queue:
+jobs:
+- job: checksubmodule  
+  pool:
     name: Hosted Ubuntu 1604
   steps:
   - script: |
@@ -23,8 +23,8 @@ phases:
       npm install check_submodules
       ./../../node_modules/.bin/check_submodules . master
     displayName: 'build'   
-- phase: windowsx86
-  queue:
+- job: windowsx86
+  pool:
     name: 'aziotbld-win03'
   steps:
   - script: |
@@ -50,24 +50,22 @@ phases:
   - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
     displayName: 'cleanup'
     condition: always()
-- phase: raspberrypi
+- job: raspberrypi
   variables:
-    _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/raspberrypi-c"
-  queue: aziotbld-lin01
+    _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/raspberrypi-c-buster:brown"
+  pool: aziotbld-lin01
   displayName: raspberrypi
   steps:
   - script: |
-     if [ -f "jenkins/raspberrypi_c.sh" ]
-     then
-      sudo ./jenkins/raspberrypi_c.sh
-     fi 
-    displayName: 'build'  
+     chmod +x jenkins/raspberrypi_c_buster.sh
+     ./jenkins/raspberrypi_c_buster.sh
+    displayName: 'build'
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
-- phase: gcc44
+- job: gcc44
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/linux-c-ubuntu-gcc4.4"
-  queue: Hosted Ubuntu 1604
+  pool: Hosted Ubuntu 1604
   displayName: 'gcc4.4'
   steps:
   - script: |
@@ -85,10 +83,10 @@ phases:
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()
-- phase: gcc46
+- job: gcc46
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/gcc-4.6:latest"
-  queue: Hosted Ubuntu 1604
+  pool: Hosted Ubuntu 1604
   displayName: 'gcc-4.6'
   steps:
   - script: |
@@ -108,10 +106,10 @@ phases:
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()    
-- phase: linuxoptions
+- job: linuxoptions
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/vsts-linux-c-ubuntu"
-  queue: Hosted Ubuntu 1604
+  pool: Hosted Ubuntu 1604
   displayName: 'linux-options'
   steps:
   - script: | 
@@ -124,8 +122,8 @@ phases:
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()    
-- phase: windowscex86
-  queue:
+- job: windowscex86
+  pool:
     name: 'win'
   steps:
   - script: |
@@ -136,8 +134,8 @@ phases:
   - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
     displayName: 'cleanup'
     condition: always()    
-- phase: windowsdynamic
-  queue:
+- job: windowsdynamic
+  pool:
     name: 'aziotbld-win03'
   steps:
   - script: |
@@ -165,8 +163,8 @@ phases:
   - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
     displayName: 'cleanup'
     condition: always()      
-- phase: OSX
-  queue:
+- job: OSX
+  pool:
     name: OSX
   steps:
   - script: |
@@ -196,10 +194,10 @@ phases:
   - script: rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()   
-- phase: clang
+- job: clang
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/ubuntu-clang"
-  queue: aziotbld-lin01
+  pool: aziotbld-lin01
   displayName: 'clang'
   steps:
   - script: |
@@ -231,10 +229,10 @@ phases:
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()    
-- phase: ubuntu1604
+- job: ubuntu1604
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/linux-c-ubuntu"
-  queue: aziotbld-lin02
+  pool: aziotbld-lin02
   displayName: 'ubuntu1604'
   steps:
   - script: |
@@ -266,10 +264,10 @@ phases:
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()    
-- phase: debian
+- job: debian
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/c-debian"
-  queue: c-df
+  pool: c-df
   displayName: 'debian'
   steps:
   - script: |
@@ -301,10 +299,10 @@ phases:
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()    
-- phase: wolfssl
+- job: wolfssl
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/vsts-c-wolfssl"
-  queue: Hosted Ubuntu 1604
+  pool: Hosted Ubuntu 1604
   displayName: 'wolfssl'
   steps:
   - script: |
@@ -336,8 +334,8 @@ phases:
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
     condition: always()
-- phase: windowsx64
-  queue:
+- job: windowsx64
+  pool:
     name: 'aziotbld-win03'
   displayName: 'windowsx64'
   steps:
@@ -367,8 +365,8 @@ phases:
   - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
     displayName: 'cleanup'
     condition: always()    
-- phase: xcodenative
-  queue:
+- job: xcodenative
+  pool:
     name: OSX
   steps:
   - script: |
