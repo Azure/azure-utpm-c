@@ -217,7 +217,7 @@ static void* load_abrmd(void** dylib)
         goto err;
     }
     if (size < sizeof(TCTI_CTX)) {
-        LogError("TCTI context size reported by tcti_init() in %s is too small: %lu < %lu", abrmd_name, size, sizeof(TCTI_CTX));
+        LogError("TCTI context size reported by tcti_init() in %s is too small: %lu < %lu", abrmd_name, (long unsigned int)size, (long unsigned int)sizeof(TCTI_CTX));
         goto err;
     }
 

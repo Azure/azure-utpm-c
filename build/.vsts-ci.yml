@@ -1,4 +1,6 @@
 name: $(BuildID)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+variables:
+  runCodesignValidationInjection: false
 resources:
 - repo: self
   clean: true
@@ -50,16 +52,14 @@ jobs:
     condition: always()
 - job: raspberrypi
   variables:
-    _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/raspberrypi-c"
-  pool: Hosted Ubuntu 1604
+    _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/raspberrypi-c-buster:brown"
+  pool: aziotbld-lin01
   displayName: raspberrypi
   steps:
   - script: |
-     if [ -f "jenkins/raspberrypi_c.sh" ]
-     then
-      sudo ./jenkins/raspberrypi_c.sh
-     fi 
-    displayName: 'build'  
+     chmod +x jenkins/raspberrypi_c_buster.sh
+     ./jenkins/raspberrypi_c_buster.sh
+    displayName: 'build'
   - script: sudo rm -rf $(Agent.BuildDirectory)/*
     displayName: 'cleanup'
 - job: gcc44

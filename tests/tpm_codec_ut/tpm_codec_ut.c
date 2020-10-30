@@ -453,6 +453,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
         //cleanup
+        Deinit_TPM_Codec(&tss_dev);
     }
 
     TEST_FUNCTION(TSS_StartAuthSession_tss_device_NULL_fail)
@@ -507,6 +508,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
         //cleanup
+        Deinit_TPM_Codec(&tss_dev);
     }
 
     TEST_FUNCTION(TSS_PolicySecret_tss_sesssion_NULL_fail)
@@ -560,6 +562,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
         //cleanup
+        Deinit_TPM_Codec(&tss_dev);
     }
 
     TEST_FUNCTION(TPM2_ReadPublic_tss_device_NULL_fail)

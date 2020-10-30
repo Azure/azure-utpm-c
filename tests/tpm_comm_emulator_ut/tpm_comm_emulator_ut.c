@@ -11,8 +11,6 @@
 #include <stddef.h>
 #endif
 
-#include "testrunnerswitcher.h"
-
 #undef DECLSPEC_IMPORT
 #pragma warning(disable: 4273)
 #ifdef WIN32
@@ -38,6 +36,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
     return realloc(ptr, size);
 }
 
+#include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
 #include "umock_c/umocktypes_stdint.h"
@@ -137,7 +136,7 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
         REGISTER_UMOCK_ALIAS_TYPE(TPM_COMM_HANDLE, void*);
         REGISTER_UMOCK_ALIAS_TYPE(TPM_SOCKET_HANDLE, void*);
-        REGISTER_UMOCK_ALIAS_TYPE(htonl_type, unsigned short);
+        REGISTER_UMOCK_ALIAS_TYPE(htonl_type, unsigned long);
 
         REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
         REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
