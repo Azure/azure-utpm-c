@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 2.8.11)
 project(utpm)
 
 set(UTPM_VERSION 1.0.1)
+string(REPLACE "." ";" VERSION_LIST ${UTPM_VERSION})
+list(GET VERSION_LIST 0 UTPM_VERSION_MAJOR)
 
 option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
@@ -162,6 +164,9 @@ if (WIN32)
 endif (WIN32)
 
 add_library(utpm ${utpm_c_files} ${utpm_h_files})
+set_target_properties(utpm PROPERTIES
+  VERSION ${UTPM_VERSION}
+  SOVERSION ${UTPM_VERSION_MAJOR})
 target_link_libraries(utpm aziotsharedutil)
 
 if (${use_emulator})
@@ -185,7 +190,7 @@ endif()
 include(GNUInstallDirs)
 
 # Install utpm
-set(package_location "cmake")
+set(package_location "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR "lib")
@@ -194,7 +199,7 @@ endif()
 install(TARGETS utpm EXPORT utpmTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
 )
 install(FILES ${utpm_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_utpm_c)
@@ -207,6 +212,16 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
+export(EXPORT utpmTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Targets.cmake"
+  )
+
+
+configure_file(config/utpmConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
+  COPYONLY
+  )
+
 install(EXPORT utpmTargets
     FILE
 	"${PROJECT_NAME}Targets.cmake"
@@ -215,7 +230,8 @@ install(EXPORT utpmTargets
 )
 
 install(
-    FILES
+  FILES
+        config/utpmConfig.cmake
 	"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION
 	${package_location}
