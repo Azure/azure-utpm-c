@@ -261,4 +261,4 @@ paket-files/
 **/.vscode/**
 # C/C++ extension for VS Code
 .browse.VC.db*
-/out/build/x64-Debug
+/out/build
