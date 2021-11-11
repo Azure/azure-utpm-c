@@ -163,6 +163,11 @@ endif (WIN32)
 
 add_library(utpm ${utpm_c_files} ${utpm_h_files})
 target_link_libraries(utpm aziotsharedutil)
+target_include_directories(utpm
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/azureiot/include>
+)
 
 if (${use_emulator})
 else ()
