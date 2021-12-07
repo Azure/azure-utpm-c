@@ -47,9 +47,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
-    displayName: 'cleanup'
-    condition: always()
 - job: raspberrypi
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/raspberrypi-c-buster:brown"
@@ -61,8 +58,6 @@ jobs:
      chmod +x jenkins/raspberrypi_c_buster.sh
      ./jenkins/raspberrypi_c_buster.sh
     displayName: 'build'
-  - script: sudo rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
 - job: linuxoptions
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/vsts-linux-c-ubuntu"
@@ -76,9 +71,6 @@ jobs:
       sudo ./jenkins/linux_c_option_test.sh
      fi
     displayName: 'build'
-    condition: always()
-  - script: sudo rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
     condition: always()
 - job: windowsdynamic
   pool:
@@ -106,9 +98,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
-    displayName: 'cleanup'
-    condition: always()
 - job: OSX
   pool:
     name: OSX
@@ -137,9 +126,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
-    condition: always()
 - job: clang
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/ubuntu-clang"
@@ -173,9 +159,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: sudo rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
-    condition: always()
 - job: ubuntu1604
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/linux-c-ubuntu"
@@ -209,9 +192,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: sudo rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
-    condition: always()
 - job: debian
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/c-debian"
@@ -245,9 +225,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: sudo rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
-    condition: always()
 - job: wolfssl
   variables:
     _PREVIEW_VSTS_DOCKER_IMAGE: "aziotbld/vsts-c-wolfssl"
@@ -281,9 +258,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: sudo rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
-    condition: always()
 - job: windowsx64
   pool:
     name: 'sdk-c--win-vs2017'
@@ -312,9 +286,6 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: cd .. && rd /Q /S $(Agent.BuildDirectory)\s
-    displayName: 'cleanup'
-    condition: always()
 - job: xcodenative
   pool:
     name: OSX
@@ -344,6 +315,4 @@ jobs:
       IOTHUB_CONN_STRING_INVALIDCERT: $(IOTHUB-CONN-STRING-INVALIDCERT)
       DPS_GLOBALDEVICEENDPOINT_INVALIDCERT: $(DPS-GLOBALDEVICEENDPOINT-INVALIDCERT)
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
-  - script: rm -rf $(Agent.BuildDirectory)/*
-    displayName: 'cleanup'
-    condition: always()
+
