@@ -23,6 +23,7 @@ resources:
     image: csdkcontainerregistry.azurecr.io/raspberrypi-c-buster:brown
 jobs:
 - job: checksubmodule
+  displayName: Check Submodules
   pool:
     vmImage: 'ubuntu-20.04'
   steps:
