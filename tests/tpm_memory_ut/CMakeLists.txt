@@ -3,10 +3,7 @@
 
 cmake_minimum_required(VERSION 2.8.11)
 
-compileAsC99()
-
 set(theseTestsName tpm_memory_ut)
-generate_cppunittest_wrapper(${theseTestsName})
 	
 set(${theseTestsName}_test_files
 	${theseTestsName}.c
@@ -21,4 +18,4 @@ set(${theseTestsName}_h_files
 
 build_c_test_artifacts(${theseTestsName} ON "tests/utpm_tests")
 
-#compile_c_test_artifacts_as(${theseTestsName} C99)
+compile_c_test_artifacts_as(${theseTestsName} C99)

@@ -3,10 +3,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-compileAsC99()
-
 set(theseTestsName tpm_comm_linux_ut)
-generate_cppunittest_wrapper(${theseTestsName})
 
 add_definitions(-DGB_DEBUG_FILEDESCRIPT)
 
@@ -23,4 +20,4 @@ set(${theseTestsName}_h_files
 
 build_c_test_artifacts(${theseTestsName} ON "tests/utpm_tests")
 
-#compile_c_test_artifacts_as(${theseTestsName} C99)
+compile_c_test_artifacts_as(${theseTestsName} C99)
