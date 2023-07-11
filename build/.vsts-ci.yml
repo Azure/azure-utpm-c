@@ -296,6 +296,8 @@ jobs:
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
 - job: OSX
   displayName: OSX
+  variables:
+    CodeQL.Enabled: false
   pool:
     name: OSX
   steps:
@@ -325,6 +327,8 @@ jobs:
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
 - job: xcodenative
   displayName: XCode Native
+  variables:
+    CodeQL.Enabled: false
   pool:
     name: OSX
   steps:
