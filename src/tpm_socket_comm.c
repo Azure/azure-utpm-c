@@ -7,6 +7,7 @@
 #include "umock_c/umock_c_prod.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 #include "azure_utpm_c/tpm_socket_comm.h"
 
@@ -57,8 +58,10 @@ static int add_to_buffer(TPM_SOCKET_INFO* socket_info, const unsigned char* byte
     }
     else
     {
-        new_buff = (unsigned char*)realloc(socket_info->recv_bytes, socket_info->recv_length + length);
-}
+        size_t realloc_size = safe_add_size_t(socket_info->recv_length, length);
+        new_buff = (unsigned char*)realloc(socket_info->recv_bytes, realloc_size);
+    }
+
     if (new_buff == NULL)
     {
         result = MU_FAILURE;
@@ -66,8 +69,8 @@ static int add_to_buffer(TPM_SOCKET_INFO* socket_info, const unsigned char* byte
     else
     {
         socket_info->recv_bytes = new_buff;
-        memcpy(socket_info->recv_bytes + socket_info->recv_length, bytes, length);
-        socket_info->recv_length += length;
+        memcpy(safe_add_size_t(socket_info->recv_bytes, socket_info->recv_length), bytes, length);
+        socket_info->recv_length = safe_add_size_t(socket_info->recv_length, length);
         result = 0;
     }
     return result;
@@ -83,8 +86,9 @@ static void remove_from_buffer(TPM_SOCKET_INFO* socket_info, size_t length)
     }
     else
     {
-        unsigned char* new_buff = (unsigned char*)malloc(socket_info->recv_length - length);
-        memcpy(new_buff, &socket_info->recv_bytes[length], socket_info->recv_length - length);
+        size_t malloc_size = safe_subtract_size_t(socket_info->recv_length, length);
+        unsigned char* new_buff = (unsigned char*)malloc(malloc_size);
+        memcpy(new_buff, &socket_info->recv_bytes[length], malloc_size);
         free(socket_info->recv_bytes);
         socket_info->recv_bytes = new_buff;
         socket_info->recv_length -= length;
