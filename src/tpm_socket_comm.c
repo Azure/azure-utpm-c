@@ -59,7 +59,14 @@ static int add_to_buffer(TPM_SOCKET_INFO* socket_info, const unsigned char* byte
     else
     {
         size_t realloc_size = safe_add_size_t(socket_info->recv_length, length);
-        new_buff = (unsigned char*)realloc(socket_info->recv_bytes, realloc_size);
+        if (realloc_size != SIZE_MAX)
+        {
+            new_buff = (unsigned char*)realloc(socket_info->recv_bytes, realloc_size);
+        }
+        else
+        {
+            new_buff = NULL;
+        }
     }
 
     if (new_buff == NULL)
@@ -68,10 +75,20 @@ static int add_to_buffer(TPM_SOCKET_INFO* socket_info, const unsigned char* byte
     }
     else
     {
-        socket_info->recv_bytes = new_buff;
-        memcpy(safe_add_size_t(socket_info->recv_bytes, socket_info->recv_length), bytes, length);
-        socket_info->recv_length = safe_add_size_t(socket_info->recv_length, length);
-        result = 0;
+        size_t memcpy_dst = safe_add_size_t(socket_info->recv_bytes, socket_info->recv_length);
+        size_t recv_length = safe_add_size_t(socket_info->recv_length, length);
+        if (memcpy_dst != SIZE_MAX && recv_length != SIZE_MAX)
+        {
+            socket_info->recv_bytes = new_buff;
+            memcpy(memcpy_dst, bytes, length);
+            socket_info->recv_length = recv_length;
+            result = 0;
+        }
+        else
+        {
+            free(new_buff);
+            result = MU_FAILURE;
+        }
     }
     return result;
 }
