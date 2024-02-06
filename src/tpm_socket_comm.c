@@ -75,12 +75,11 @@ static int add_to_buffer(TPM_SOCKET_INFO* socket_info, const unsigned char* byte
     }
     else
     {
-        size_t memcpy_dst = safe_add_size_t(socket_info->recv_bytes, socket_info->recv_length);
         size_t recv_length = safe_add_size_t(socket_info->recv_length, length);
-        if (memcpy_dst != SIZE_MAX && recv_length != SIZE_MAX)
+        if (recv_length != SIZE_MAX)
         {
             socket_info->recv_bytes = new_buff;
-            memcpy(memcpy_dst, bytes, length);
+            memcpy(socket_info->recv_bytes + socket_info->recv_length, bytes, length);
             socket_info->recv_length = recv_length;
             result = 0;
         }
