@@ -109,7 +109,7 @@ static void remove_from_buffer(TPM_SOCKET_INFO* socket_info, size_t length)
             memcpy(new_buff, &socket_info->recv_bytes[length], malloc_size);
             free(socket_info->recv_bytes);
             socket_info->recv_bytes = new_buff;
-            socket_info->recv_length -= length;
+            socket_info->recv_length = malloc_size;
         }
     }
 }
