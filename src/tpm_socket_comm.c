@@ -103,11 +103,14 @@ static void remove_from_buffer(TPM_SOCKET_INFO* socket_info, size_t length)
     else
     {
         size_t malloc_size = safe_subtract_size_t(socket_info->recv_length, length);
-        unsigned char* new_buff = (unsigned char*)malloc(malloc_size);
-        memcpy(new_buff, &socket_info->recv_bytes[length], malloc_size);
-        free(socket_info->recv_bytes);
-        socket_info->recv_bytes = new_buff;
-        socket_info->recv_length -= length;
+        if (malloc_size != SIZE_MAX)
+        {
+            unsigned char* new_buff = (unsigned char*)malloc(malloc_size);
+            memcpy(new_buff, &socket_info->recv_bytes[length], malloc_size);
+            free(socket_info->recv_bytes);
+            socket_info->recv_bytes = new_buff;
+            socket_info->recv_length -= length;
+        }
     }
 }
 
