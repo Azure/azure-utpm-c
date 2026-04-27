@@ -197,22 +197,22 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     {
         if (!use_abrmd)
         {
-            STRICT_EXPECTED_CALL(dlopen(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(NULL);
-            STRICT_EXPECTED_CALL(dlopen(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(NULL);
+            STRICT_EXPECTED_CALL(dlopen(IGNORED_ARG, IGNORED_ARG)).SetReturn(NULL);
+            STRICT_EXPECTED_CALL(dlopen(IGNORED_ARG, IGNORED_ARG)).SetReturn(NULL);
         }
         else
         {
-            STRICT_EXPECTED_CALL(dlsym(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-            STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-            STRICT_EXPECTED_CALL(dlclose(IGNORED_PTR_ARG));
+            STRICT_EXPECTED_CALL(dlsym(IGNORED_ARG, IGNORED_ARG));
+            STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+            STRICT_EXPECTED_CALL(dlclose(IGNORED_ARG));
         }
     }
 
     TEST_FUNCTION(tpm_comm_create_tpm_res_mgr_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
@@ -228,9 +228,9 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_create_raw_tpm_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
@@ -246,15 +246,15 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_create_usermode_tpm_old_64_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
         setup_load_abrmd(false);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_ARG, IGNORED_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
@@ -270,16 +270,16 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_create_usermode_tpm_old_32_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
         setup_load_abrmd(false);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_ARG, IGNORED_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
@@ -295,16 +295,16 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_create_usermode_tpm_new_64_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
         setup_load_abrmd(false);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_ARG, IGNORED_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
@@ -320,15 +320,15 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_create_usermode_tpm_new_32_succeed)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
         setup_load_abrmd(false);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_ARG, IGNORED_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
@@ -344,17 +344,17 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
     TEST_FUNCTION(tpm_comm_create_usermode_tpm_fail)
     {
         //arrange
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_open(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
         setup_load_abrmd(false);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(-1);
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gbfiledesc_access(IGNORED_ARG, IGNORED_ARG)).SetReturn(-1);
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
         //act
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
@@ -373,8 +373,8 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
-        STRICT_EXPECTED_CALL(gbfiledesc_close(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(gbfiledesc_close(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
         //act
         tpm_comm_destroy(tpm_handle);
@@ -439,8 +439,8 @@ BEGIN_TEST_SUITE(tpm_comm_linux_ut)
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
-        STRICT_EXPECTED_CALL(gbfiledesc_write(IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(TEMP_CMD_LENGTH);
-        STRICT_EXPECTED_CALL(gbfiledesc_read(IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG)).SetReturn(TEMP_CMD_LENGTH);
+        STRICT_EXPECTED_CALL(gbfiledesc_write(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG)).SetReturn(TEMP_CMD_LENGTH);
+        STRICT_EXPECTED_CALL(gbfiledesc_read(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG)).SetReturn(TEMP_CMD_LENGTH);
 
         //act
         unsigned char response[TEMP_CMD_LENGTH];
