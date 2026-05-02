@@ -12,8 +12,11 @@ name: $(BuildID)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Re
 # unit tests.
 #
 # utpm has no jenkins/linux_wolfssl.sh, no jenkins/linux_install_deps.sh,
-# and no jenkins/osx_*.sh scripts (only unsupport_osx_* exist), so the
-# wolfssl, OSX and XCode Native jobs are not present in this pipeline.
+# no jenkins/ubuntu_clang.sh, no jenkins/linux_c_option_test.sh, no
+# jenkins/windows_c_build_as_dynamic.cmd, and no jenkins/osx_*.sh scripts
+# (only unsupport_osx_* exist), so the wolfssl, OSX, XCode Native, Linux
+# Ubuntu Clang, Linux Ubuntu with Options and Windows Dynamic jobs are
+# not present in this pipeline.
 
 resources:
   - repo: self
@@ -80,47 +83,6 @@ jobs:
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
 
-- job: windowsdynamic
-  timeoutInMinutes: 90
-  pool:
-    vmImage: 'windows-2022'
-  displayName: 'Windows Dynamic'
-  steps:
-  - checkout: self
-    submodules: true
-  - script: |
-      call jenkins\windows_c_VsDevCmd.cmd && call jenkins\windows_c_build_as_dynamic.cmd
-    displayName: 'Build'
-  - task: ComponentGovernanceComponentDetection@0
-    displayName: 'Component Detection'
-
-- job: clang
-  timeoutInMinutes: 90
-  pool:
-    vmImage: 'ubuntu-24.04'
-  displayName: 'Linux Ubuntu Clang'
-  steps:
-  - checkout: self
-    submodules: true
-  - script: |
-      set -e
-      sudo apt-get update
-      sudo apt-get install -y \
-        clang \
-        cmake \
-        build-essential \
-        pkg-config \
-        curl \
-        libcurl4-openssl-dev \
-        libssl-dev \
-        uuid-dev
-    displayName: 'Host setup'
-  - script: |
-      export OPENSSL_ia32cap=0x00000000
-      sudo chmod -R 755 .
-      sudo -E ./jenkins/ubuntu_clang.sh
-    displayName: 'Build'
-
 - job: ubuntu2404
   timeoutInMinutes: 90
   pool:
@@ -147,30 +109,6 @@ jobs:
       sudo chmod -R 755 .
       sudo -E ./jenkins/ubuntu_c.sh
     displayName: 'Build'
-
-- job: linuxoptions
-  timeoutInMinutes: 60
-  pool:
-    vmImage: 'ubuntu-24.04'
-  displayName: 'Linux Ubuntu with Options'
-  steps:
-  - checkout: self
-    submodules: true
-  - script: |
-      set -e
-      sudo apt-get update
-      sudo apt-get install -y \
-        cmake \
-        build-essential \
-        pkg-config \
-        curl \
-        libcurl4-openssl-dev \
-        libssl-dev \
-        uuid-dev
-    displayName: 'Host setup'
-  - script: 'sudo ./jenkins/linux_c_option_test.sh'
-    displayName: 'Build'
-    condition: always()
 
 - job: debian
   timeoutInMinutes: 60
@@ -232,6 +170,11 @@ jobs:
         -Dskip_samples:BOOL=ON \
         -Duse_installed_dependencies:BOOL=OFF \
         -Duse_default_uuid:BOOL=ON \
+        -Duse_http:BOOL=OFF \
+        -Duse_openssl:BOOL=OFF \
         ..
+      # use_http=OFF disables c-utility's CURL probe, which would otherwise
+      # require libcurl4-openssl-dev:armhf (not packaged on hosted agents).
+      # use_openssl=OFF for the same reason re: libssl-dev:armhf.
       make -j$(nproc)
     displayName: 'Cross-compile utpm for armhf'
