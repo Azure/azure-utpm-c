@@ -97,6 +97,7 @@ static void* my_dlopen(const char* filename, int flag)
 static int my_dlclose(void* handle)
 {
     my_gballoc_free(handle);
+    return 0;
 }
 
 static TPM_SOCKET_HANDLE my_tpm_socket_create(const char* address, unsigned short port)

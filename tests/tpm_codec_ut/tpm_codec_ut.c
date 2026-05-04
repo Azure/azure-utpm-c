@@ -781,7 +781,7 @@ BEGIN_TEST_SUITE(tpm_codec_ut)
         TSS_DEVICE tss_dev = { 0 };
         TSS_SESSION session;
         TPMI_DH_OBJECT handle = TEST_TPMI_DH_OBJECT;
-        BYTE bt_data[10];
+        BYTE bt_data[10] = { 0 };
         TPM2B_MAX_BUFFER dataBuf;
         dataBuf.b.size = 10;
         MemoryCopy(dataBuf.t.buffer, bt_data, 10);
