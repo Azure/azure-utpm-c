@@ -33,4 +33,8 @@ endif()
 
 target_link_libraries(utpm_sample utpm)
 
+if (TARGET c_logging_v2)
+    target_link_libraries(utpm_sample c_logging_v2)
+endif()
+
 
