@@ -17,6 +17,10 @@ option(use_emulator "build using the tpm emulator" ON)
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF)" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(run_int_tests "set run_int_tests to ON to integration tests (default is OFF)." OFF)
+# Force CppUnitTest path off: c-utility's _testsonly_lib forces /TP but CMake
+# still emits /TC for .c sources, causing STL1003 (yvals_core.h). The plain
+# CTest .exe path used when this is OFF builds and runs the same coverage.
+option(use_cppunittest "set use_cppunittest to ON to build CppUnitTest tests on Windows (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(use_custom_heap "use externally defined heap functions instead of the malloc family" OFF)

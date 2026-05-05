@@ -22,6 +22,21 @@ set CMAKE_DIR=tpm_win32
 set build-config=Debug
 set build-platform=Win32
 
+rem // parse arguments (currently only --platform is recognised)
+:args-loop
+if "%1" equ "" goto args-done
+if "%1" equ "--platform" (
+    shift
+    set build-platform=%1
+    if /I "%1" equ "x64" set CMAKE_DIR=tpm_x64
+    if /I "%1" equ "Win32" set CMAKE_DIR=tpm_win32
+    if /I "%1" equ "ARM" set CMAKE_DIR=tpm_arm
+    if /I "%1" equ "ARM64" set CMAKE_DIR=tpm_arm64
+)
+shift
+goto args-loop
+:args-done
+
 echo Build Root: %build-root%
 echo Repo Root: %repo_root%
 
@@ -49,7 +64,7 @@ if %build-platform% == x64 (
 )
 if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 
-msbuild /m utpm.sln "/p:Configuration=%build-config%;Platform=%build-platform%"
+msbuild -restore /m utpm.sln "/p:Configuration=%build-config%;Platform=%build-platform%"
 if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 
 if %build-platform% neq arm (
