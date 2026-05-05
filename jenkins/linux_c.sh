@@ -22,7 +22,13 @@ mkdir -p $build_folder
 pushd $build_folder
 cmake ../.. -Drun_unittests:BOOL=ON -Drun_valgrind:BOOL=ON
 cmake --build . -- --jobs=$(nproc)
-ctest -C "debug" -V
+ctest -C "debug" -V || {
+    echo '===== ctest failed; direct invocation =====';
+    find . -path '*/Testing*' -prune -o -type f \( -name '*_ut_exe' -o -name '*_ut' \) -executable -print 2>/dev/null | while read t; do
+        echo ">>> $t"; "$t" 2>&1 || echo "[exit=$?]";
+    done;
+    exit 1;
+}
 
 popd
 :

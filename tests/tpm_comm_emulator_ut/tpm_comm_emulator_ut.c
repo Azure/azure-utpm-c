@@ -41,7 +41,7 @@ static void* my_gballoc_realloc(void* ptr, size_t size)
 #include "umock_c/umocktypes_charptr.h"
 #include "umock_c/umocktypes_stdint.h"
 #include "umock_c/umock_c_negative_tests.h"
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 
 #define ENABLE_MOCKS
 #include "azure_c_shared_utility/gballoc.h"
@@ -194,15 +194,15 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
 
     static void setup_socket_send_mocks()
     {
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(htonl(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
     }
 
     static void setup_socket_read_mocks(htonl_type* htonl_reply)
     {
-        STRICT_EXPECTED_CALL(tpm_socket_read(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        STRICT_EXPECTED_CALL(tpm_socket_read(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
             .CopyOutArgumentBuffer_tpm_bytes(htonl_reply, sizeof(htonl_type));
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(htonl(IGNORED_ARG));
     }
 
     static void setup_comm_create_mocks(void)
@@ -210,10 +210,10 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         htonl_type client_ver = 1;
         htonl_type unused = 0;
 
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
-        STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_ARG, IGNORED_ARG));
         setup_socket_send_mocks();
         setup_socket_send_mocks();
 
@@ -222,17 +222,17 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         setup_socket_read_mocks(&unused);
 
         // Power on simulator
-        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(htonl(IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_create(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(htonl(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(htonl(IGNORED_ARG));
 
-        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
         setup_socket_read_mocks(&unused);
 
-        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
         setup_socket_read_mocks(&unused);
-        STRICT_EXPECTED_CALL(tpm_socket_destroy(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_destroy(IGNORED_ARG));
     }
 
     static void setup_tpm_comm_submit_command_mocks(void)
@@ -241,11 +241,11 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         htonl_type ack_cmd = 0;
 
         setup_socket_send_mocks();
-        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
         setup_socket_send_mocks();
-        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_send(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
         setup_socket_read_mocks(&resp_len);
-        STRICT_EXPECTED_CALL(tpm_socket_read(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_read(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
         setup_socket_read_mocks(&ack_cmd);
 
     }
@@ -311,9 +311,9 @@ BEGIN_TEST_SUITE(tpm_comm_emulator_ut)
         umock_c_reset_all_calls();
 
         setup_socket_send_mocks();
-        STRICT_EXPECTED_CALL(tpm_socket_destroy(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(tpm_socket_destroy(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
         //act
         tpm_comm_destroy(tpm_handle);

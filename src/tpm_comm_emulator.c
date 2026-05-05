@@ -1,6 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#ifdef WIN32
+    // Winsock2.h must precede any header that pulls in <windows.h> (e.g. via
+    // umock_c / xlogging on Windows). Otherwise <windows.h> includes the older
+    // <winsock.h> which conflicts with <Winsock2.h>.
+    #include <Winsock2.h>
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -14,9 +21,7 @@
 #include "azure_utpm_c/tpm_comm.h"
 #include "azure_utpm_c/tpm_socket_comm.h"
 
-#ifdef WIN32
-    #include <Winsock2.h>
-#else
+#ifndef WIN32
     #include <arpa/inet.h>
 #endif
 

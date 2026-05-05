@@ -9,6 +9,10 @@ usePermissiveRulesForSamplesAndTests()
 function(add_sample_directory whatIsBuilding)
     add_subdirectory(${whatIsBuilding})
 
+    if (TARGET c_logging_v2)
+        target_link_libraries(${whatIsBuilding} c_logging_v2)
+    endif()
+
     set_target_properties(${whatIsBuilding}
                PROPERTIES
                FOLDER "utpm_Samples")

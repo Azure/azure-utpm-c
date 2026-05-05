@@ -26,7 +26,7 @@ static void my_gballoc_free(void* ptr)
 #include "umock_c/umocktypes_charptr.h"
 #include "umock_c/umocktypes_stdint.h"
 #include "umock_c/umock_c_negative_tests.h"
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 
 #define ENABLE_MOCKS
 #include "azure_c_shared_utility/gballoc.h"
@@ -153,9 +153,9 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
 
     static void setup_comm_create_mocks()
     {
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(Tbsi_Context_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(Tbsi_GetDeviceInfo(IGNORED_NUM_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(Tbsi_Context_Create(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(Tbsi_GetDeviceInfo(IGNORED_ARG, IGNORED_ARG));
     }
 
     static int should_skip_index(size_t current_index, const size_t skip_array[], size_t length)
@@ -192,8 +192,8 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
     {
         //arrange
         setup_comm_create_mocks();
-        STRICT_EXPECTED_CALL(Tbsip_Context_Close(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(Tbsip_Context_Close(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
         g_tpm_version = TPM_VERSION_12;
 
@@ -240,8 +240,8 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
-        STRICT_EXPECTED_CALL(Tbsip_Context_Close(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(Tbsip_Context_Close(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
         //act
         tpm_comm_destroy(tpm_handle);
@@ -346,7 +346,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
-        STRICT_EXPECTED_CALL(Tbsip_Submit_Command(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(Tbsip_Submit_Command(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, IGNORED_ARG))
             .SetReturn((TBS_RESULT)TBS_E_SERVICE_NOT_RUNNING);
 
         //act
@@ -369,7 +369,7 @@ BEGIN_TEST_SUITE(tpm_comm_win32_ut)
         TPM_COMM_HANDLE tpm_handle = tpm_comm_create(NULL);
         umock_c_reset_all_calls();
 
-        STRICT_EXPECTED_CALL(Tbsip_Submit_Command(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(Tbsip_Submit_Command(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, IGNORED_ARG));
 
         //act
         int tpm_result = tpm_comm_submit_command(tpm_handle, TEMP_TPM_COMMAND, TEMP_CMD_LENGTH, response, &resp_len);

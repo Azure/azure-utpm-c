@@ -5,6 +5,10 @@ cmake_minimum_required(VERSION 3.5)
 
 usePermissiveRulesForSamplesAndTests()
 
+if (TARGET c_logging_v2)
+    link_libraries(c_logging_v2)
+endif()
+
 
 if (WIN32)
     add_subdirectory(tpm_comm_emulator_ut)
