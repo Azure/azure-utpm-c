@@ -1,6 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+// Winsock2 must be included BEFORE any header that may transitively include
+// <windows.h>; otherwise <windows.h> will pull in <winsock.h> first and
+// <winsock2.h> will redefine AF_IPX/AF_MAX/etc. (warning C4005 -> /WX C2220).
+#ifdef WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -11,11 +20,7 @@
 
 #include "azure_utpm_c/tpm_socket_comm.h"
 
-#ifdef WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#else
+#ifndef WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
