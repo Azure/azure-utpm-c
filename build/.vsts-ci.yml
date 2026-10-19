@@ -148,8 +148,8 @@ jobs:
           set -e
           apt-get update
           apt-get install -y git ca-certificates cmake build-essential pkg-config curl libcurl4-openssl-dev libssl-dev uuid-dev valgrind
-          chmod 755 jenkins/debian_c.sh
-          ./jenkins/debian_c.sh
+          # bash -e: the script does not check its own commands, so a failed build or test would otherwise pass.
+          bash -e jenkins/debian_c.sh
         '
     displayName: 'Build and test in Debian container'
   # docker runs as root; hand the workspace back before the agent cleans it up.
